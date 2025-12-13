@@ -36,6 +36,12 @@ settings:
     healing_above: true
     # 是否在动作栏显示受击实体血量
     health_action_bar: true
+    # 是否在掉落物上方显示掉落物信息
+    drop: true
+    # 是否在农作物上方显示成熟度
+    crop: true
+    # 是否在点燃的TNT上方显示爆炸倒计时
+    tnt: true
   sound:
     # 是否在玩家射中实体时播放音效
     arrow: true

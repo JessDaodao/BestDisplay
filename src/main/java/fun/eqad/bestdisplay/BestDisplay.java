@@ -1,21 +1,29 @@
 package fun.eqad.bestdisplay;
 
+import fun.eqad.bestdisplay.Util.NameUtil;
 import fun.eqad.bestdisplay.bstats.bStats;
 import fun.eqad.bestdisplay.config.ConfigManager;
 import fun.eqad.bestdisplay.command.CommandManager;
 import fun.eqad.bestdisplay.entity.*;
+import fun.eqad.bestdisplay.block.CropEvent;
 import org.bukkit.event.*;
 import org.bukkit.plugin.java.JavaPlugin;
 import java.io.*;
 
 public final class BestDisplay extends JavaPlugin implements Listener {
     private ConfigManager config;
+    private NameUtil nameUtil;
     private HitEvent hitEvent;
     private DropEvent dropEvent;
+    private CropEvent cropEvent;
+    private TNTEvent tntEvent;
 
     public ConfigManager getConfigManager() { return config; }
+    public NameUtil getNameUtil() { return nameUtil; }
     public HitEvent getHitEvent() { return hitEvent; }
     public DropEvent getDropEvent() { return dropEvent; }
+    public CropEvent getCropEvent() { return cropEvent; }
+    public TNTEvent getTNTEvent() { return tntEvent; }
 
     @Override
     public void onEnable() {
@@ -29,21 +37,22 @@ public final class BestDisplay extends JavaPlugin implements Listener {
         getLogger().info("Author: EQAD Network");
 
         this.config = new ConfigManager(this);
+        this.nameUtil = new NameUtil(this);
         this.hitEvent = new HitEvent(this);
         this.dropEvent = new DropEvent(this);
+        this.cropEvent = new CropEvent(this);
+        this.tntEvent = new TNTEvent(this);
         
         new bStats(this, 28325);
         getServer().getPluginManager().registerEvents(hitEvent, this);
         getServer().getPluginManager().registerEvents(dropEvent, this);
+        getServer().getPluginManager().registerEvents(cropEvent, this);
+        getServer().getPluginManager().registerEvents(tntEvent, this);
         getCommand("bestdisplay").setExecutor(new CommandManager(this));
         getCommand("bestdisplay").setTabCompleter(new CommandManager(this));
 
-        if (!new File(getDataFolder(), "item.json").exists()) {
-            saveResource("item.json", false);
-        }
-        
-        if (!new File(getDataFolder(), "entity.json").exists()) {
-            saveResource("entity.json", false);
+        if (!new File(getDataFolder(), "lang.json").exists()) {
+            saveResource("lang.json", false);
         }
 
         NameUtil.loadItemNames(this);
@@ -55,17 +64,18 @@ public final class BestDisplay extends JavaPlugin implements Listener {
     @Override
     public void onDisable() {
         cleanupArmorStands();
+        if (tntEvent != null) {
+            tntEvent.cleanup();
+        }
         getLogger().info("BestDisplay已成功卸载");
     }
     
     private void cleanupArmorStands() {
-        int cleanedCount = 0;
         for (org.bukkit.World world : getServer().getWorlds()) {
             for (org.bukkit.entity.Entity entity : world.getEntities()) {
                 if (entity instanceof org.bukkit.entity.ArmorStand && 
                     entity.getScoreboardTags().contains("BestDisplay")) {
                     entity.remove();
-                    cleanedCount++;
                 }
             }
         }

@@ -69,7 +69,7 @@ public class HitEvent implements Listener {
                     if (event.getEntity().getCustomName() != null) {
                         targetName = event.getEntity().getCustomName();
                     } else {
-                        targetName = NameUtil.getEntityName(event.getEntity().getType());
+                        targetName = plugin.getNameUtil().getEntityName(event.getEntity().getType());
                     }
 
                     if (remainingHealth <= 0) {
@@ -145,7 +145,7 @@ public class HitEvent implements Listener {
                         if (event.getEntity().getCustomName() != null) {
                             targetName = event.getEntity().getCustomName();
                         } else {
-                            targetName = NameUtil.getEntityName(event.getEntity().getType());
+                            targetName = plugin.getNameUtil().getEntityName(event.getEntity().getType());
                         }
 
                         if (remainingHealth <= 0) {

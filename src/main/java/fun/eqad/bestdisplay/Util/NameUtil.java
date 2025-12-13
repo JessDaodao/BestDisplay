@@ -1,5 +1,6 @@
-package fun.eqad.bestdisplay.entity;
+package fun.eqad.bestdisplay.Util;
 
+import fun.eqad.bestdisplay.BestDisplay;
 import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemStack;
@@ -9,31 +10,25 @@ import java.io.*;
 import java.util.*;
 
 public class NameUtil {
+    private final BestDisplay plugin;
     private static Map<String, String> itemNames = new HashMap<>();
     private static Map<String, String> entityNames = new HashMap<>();
     private static boolean loaded = false;
+
+    public NameUtil(BestDisplay plugin) {
+        this.plugin = plugin;
+    }
     
     public static void loadItemNames(JavaPlugin plugin) {
         if (loaded) return;
 
-        File itemsFile = new File(plugin.getDataFolder(), "item.json");
+        File itemsFile = new File(plugin.getDataFolder(), "lang.json");
         if (itemsFile.exists()) {
             try (FileReader reader = new FileReader(itemsFile, StandardCharsets.UTF_8)) {
                 com.google.gson.JsonObject jsonObject = new com.google.gson.Gson().fromJson(reader, com.google.gson.JsonObject.class);
                 
                 for (Map.Entry<String, com.google.gson.JsonElement> entry : jsonObject.entrySet()) {
                     itemNames.put(entry.getKey(), entry.getValue().getAsString());
-                }
-            } catch (IOException ignored) {}
-        }
-
-        File entityFile = new File(plugin.getDataFolder(), "entity.json");
-        if (entityFile.exists()) {
-            try (FileReader reader = new FileReader(entityFile, StandardCharsets.UTF_8)) {
-                com.google.gson.JsonObject jsonObject = new com.google.gson.Gson().fromJson(reader, com.google.gson.JsonObject.class);
-                
-                for (Map.Entry<String, com.google.gson.JsonElement> entry : jsonObject.entrySet()) {
-                    entityNames.put(entry.getKey(), entry.getValue().getAsString());
                 }
             } catch (IOException ignored) {}
         }
@@ -47,6 +42,10 @@ public class NameUtil {
         }
         
         Material material = item.getType();
+        return getMaterialName(material);
+    }
+    
+    public static String getMaterialName(Material material) {
         String itemKey = "item.minecraft." + material.name().toLowerCase();
         String blockKey = "block.minecraft." + material.name().toLowerCase();
         

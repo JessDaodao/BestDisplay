@@ -35,7 +35,7 @@ public class DropEvent implements Listener {
 
     private void displayItemInfo(Item item) {
         ItemStack itemStack = item.getItemStack();
-        String itemName = NameUtil.getItemName(itemStack);
+        String itemName = plugin.getNameUtil().getItemName(itemStack);
         int amount = itemStack.getAmount();
         
         String displayName = amount > 1 ? itemName + " §7x" + amount : itemName;
@@ -82,7 +82,7 @@ public class DropEvent implements Listener {
                         armorStand.teleport(currentLocation.clone().add(0, 0.5, 0));
                         
                         ItemStack currentItemStack = item.getItemStack();
-                        String currentItemName = NameUtil.getItemName(currentItemStack);
+                        String currentItemName = plugin.getNameUtil().getItemName(currentItemStack);
                         int currentAmount = currentItemStack.getAmount();
                         String currentDisplayName = currentAmount > 1 ? currentItemName + " §7x" + currentAmount : currentItemName;
                         armorStand.setCustomName(currentDisplayName);
