@@ -12,6 +12,7 @@ public class ConfigManager {
     private boolean damageAbove;
     private boolean healingAbove;
     private boolean healthActionBar;
+    private boolean dropDisplay;
     private boolean arrowSound;
 
     public ConfigManager(BestDisplay plugin) {
@@ -31,6 +32,7 @@ public class ConfigManager {
         damageAbove = config.getBoolean("settings.display.damage_above", true);
         healingAbove = config.getBoolean("settings.display.healing_above", true);
         healthActionBar = config.getBoolean("settings.display.health_action_bar", true);
+        dropDisplay = config.getBoolean("settings.display.drop_display", true);
         arrowSound = config.getBoolean("settings.sound.arrow", true);
     }
 
@@ -38,5 +40,6 @@ public class ConfigManager {
     public boolean shouldDamageAbove() { return damageAbove; }
     public boolean shouldHealingAbove() { return healingAbove; }
     public boolean shouldHealthActionBar() { return healthActionBar; }
+    public boolean shouldDropDisplay() { return dropDisplay; }
     public boolean shouldArrowSound() { return arrowSound; }
 }

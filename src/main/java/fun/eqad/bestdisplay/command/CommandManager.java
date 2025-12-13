@@ -2,9 +2,7 @@ package fun.eqad.bestdisplay.command;
 
 import fun.eqad.bestdisplay.BestDisplay;
 import org.bukkit.command.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class CommandManager implements CommandExecutor, TabCompleter {
     private final BestDisplay plugin;

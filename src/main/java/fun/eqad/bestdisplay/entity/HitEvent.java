@@ -69,7 +69,7 @@ public class HitEvent implements Listener {
                     if (event.getEntity().getCustomName() != null) {
                         targetName = event.getEntity().getCustomName();
                     } else {
-                        targetName = getEntityDisplayName(event.getEntity().getType());
+                        targetName = NameUtil.getEntityName(event.getEntity().getType());
                     }
 
                     if (remainingHealth <= 0) {
@@ -145,7 +145,7 @@ public class HitEvent implements Listener {
                         if (event.getEntity().getCustomName() != null) {
                             targetName = event.getEntity().getCustomName();
                         } else {
-                            targetName = getEntityDisplayName(event.getEntity().getType());
+                            targetName = NameUtil.getEntityName(event.getEntity().getType());
                         }
 
                         if (remainingHealth <= 0) {
@@ -222,6 +222,7 @@ public class HitEvent implements Listener {
             armorStand.setSmall(true);
 
             armorStand.setCustomName("§a+" + String.format("%.1f", amount) + "❤");
+            armorStand.addScoreboardTag("BestDisplay");
         });
 
         new BukkitRunnable() {
@@ -270,6 +271,7 @@ public class HitEvent implements Listener {
 
             String color = isCritical ? "§4" : "§c";
             armorStand.setCustomName(color + "-" + String.format("%.1f", damage) + "❤");
+            armorStand.addScoreboardTag("BestDisplay");
         });
 
         new BukkitRunnable() {
@@ -302,72 +304,5 @@ public class HitEvent implements Listener {
         }
 
         return healthBar.toString();
-    }
-
-    private String getEntityDisplayName(org.bukkit.entity.EntityType entityType) {
-        switch (entityType) {
-            case ZOMBIE: return "僵尸";
-            case SKELETON: return "骷髅";
-            case CREEPER: return "苦力怕";
-            case SPIDER: return "蜘蛛";
-            case ENDERMAN: return "末影人";
-            case BLAZE: return "烈焰人";
-            case GHAST: return "恶魂";
-            case WITHER_SKELETON: return "凋灵骷髅";
-            case ENDER_DRAGON: return "末影龙";
-            case WITHER: return "凋灵";
-            case WITCH: return "女巫";
-            case SLIME: return "史莱姆";
-            case MAGMA_CUBE: return "岩浆怪";
-            case CAVE_SPIDER: return "洞穴蜘蛛";
-            case SILVERFISH: return "蠹虫";
-            case ENDERMITE: return "末影螨";
-            case GUARDIAN: return "守卫者";
-            case ELDER_GUARDIAN: return "远古守卫者";
-            case SHULKER: return "潜影贝";
-            case HUSK: return "尸壳";
-            case STRAY: return "流浪者";
-            case PHANTOM: return "幻翼";
-            case DROWNED: return "溺尸";
-            case PILLAGER: return "掠夺者";
-            case RAVAGER: return "劫掠兽";
-            case VEX: return "恼鬼";
-            case EVOKER: return "唤魔者";
-            case VINDICATOR: return "卫道士";
-            case HOGLIN: return "猪灵蛮兵";
-            case PIGLIN: return "猪灵";
-            case ZOGLIN: return "僵尸猪灵";
-            case ZOMBIFIED_PIGLIN: return "僵尸猪灵";
-            case WOLF: return "狼";
-            case DOLPHIN: return "海豚";
-            case IRON_GOLEM: return "铁傀儡";
-            case COW: return "牛";
-            case PIG: return "猪";
-            case SHEEP: return "羊";
-            case CHICKEN: return "鸡";
-            case CAT: return "猫";
-            case HORSE: return "马";
-            case DONKEY: return "驴";
-            case MULE: return "骡";
-            case BEE: return "蜜蜂";
-            case VILLAGER: return "村民";
-            case SNOWMAN: return "雪傀儡";
-            case SQUID: return "鱿鱼";
-            case BAT: return "蝙蝠";
-            case OCELOT: return "豹猫";
-            case RABBIT: return "兔子";
-            case LLAMA: return "羊驼";
-            case PARROT: return "鹦鹉";
-            case TURTLE: return "海龟";
-            case COD: return "鳕鱼";
-            case SALMON: return "鲑鱼";
-            case PUFFERFISH: return "河豚";
-            case TROPICAL_FISH: return "热带鱼";
-            case FOX: return "狐狸";
-            case PANDA: return "熊猫";
-            case AXOLOTL: return "美西螈";
-            case STRIDER: return "炽足兽";
-            default: return entityType.toString().toLowerCase();
-        }
     }
 }
