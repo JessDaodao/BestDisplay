@@ -39,6 +39,8 @@ settings:
     drop: true
     # 是否在农作物上方显示成熟度
     crop: true
+    # 是否在蜂巢/蜂箱上方显示蜜蜂数量与储蜜量
+    bee_nest: true
     # 是否在村民头顶显示职业与等级信息
     villager: true
     # 是否在点燃的TNT上方显示爆炸倒计时

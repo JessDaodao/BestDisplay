@@ -6,6 +6,7 @@ import fun.eqad.bestdisplay.config.ConfigManager;
 import fun.eqad.bestdisplay.command.CommandManager;
 import fun.eqad.bestdisplay.entity.*;
 import fun.eqad.bestdisplay.block.CropEvent;
+import fun.eqad.bestdisplay.block.BeeNestEvent;
 import org.bukkit.event.*;
 import org.bukkit.plugin.java.JavaPlugin;
 import java.io.*;
@@ -16,6 +17,7 @@ public final class BestDisplay extends JavaPlugin implements Listener {
     private HitEvent hitEvent;
     private DropEvent dropEvent;
     private CropEvent cropEvent;
+    private BeeNestEvent beeNestEvent;
     private VillagerEvent villagerEvent;
     private TNTEvent tntEvent;
 
@@ -24,6 +26,7 @@ public final class BestDisplay extends JavaPlugin implements Listener {
     public HitEvent getHitEvent() { return hitEvent; }
     public DropEvent getDropEvent() { return dropEvent; }
     public CropEvent getCropEvent() { return cropEvent; }
+    public BeeNestEvent getBeeNestEvent() { return beeNestEvent; }
     public VillagerEvent getVillagerEvent() { return villagerEvent; }
     public TNTEvent getTNTEvent() { return tntEvent; }
 
@@ -43,6 +46,7 @@ public final class BestDisplay extends JavaPlugin implements Listener {
         this.hitEvent = new HitEvent(this);
         this.dropEvent = new DropEvent(this);
         this.cropEvent = new CropEvent(this);
+        this.beeNestEvent = new BeeNestEvent(this);
         this.villagerEvent = new VillagerEvent(this);
         this.tntEvent = new TNTEvent(this);
         
@@ -50,6 +54,7 @@ public final class BestDisplay extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(hitEvent, this);
         getServer().getPluginManager().registerEvents(dropEvent, this);
         getServer().getPluginManager().registerEvents(cropEvent, this);
+        getServer().getPluginManager().registerEvents(beeNestEvent, this);
         getServer().getPluginManager().registerEvents(villagerEvent, this);
         getServer().getPluginManager().registerEvents(tntEvent, this);
         getCommand("bestdisplay").setExecutor(new CommandManager(this));

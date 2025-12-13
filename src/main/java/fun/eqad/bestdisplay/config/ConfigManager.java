@@ -16,6 +16,7 @@ public class ConfigManager {
     private boolean cropDisplay;
     private boolean tntDisplay;
     private boolean villagerDisplay;
+    private boolean beeNestDisplay;
     private boolean arrowSound;
 
     public ConfigManager(BestDisplay plugin) {
@@ -39,6 +40,7 @@ public class ConfigManager {
         cropDisplay = config.getBoolean("settings.display.crop", true);
         tntDisplay = config.getBoolean("settings.display.tnt", true);
         villagerDisplay = config.getBoolean("settings.display.villager", true);
+        beeNestDisplay = config.getBoolean("settings.display.bee_nest", true);
         arrowSound = config.getBoolean("settings.sound.arrow", true);
     }
 
@@ -50,5 +52,6 @@ public class ConfigManager {
     public boolean shouldCropDisplay() { return cropDisplay; }
     public boolean shouldTNTDisplay() { return tntDisplay; }
     public boolean shouldVillagerDisplay() { return villagerDisplay; }
+    public boolean shouldBeeNestDisplay() { return beeNestDisplay; }
     public boolean shouldArrowSound() { return arrowSound; }
 }
