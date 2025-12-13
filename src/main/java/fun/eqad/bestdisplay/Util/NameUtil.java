@@ -28,7 +28,14 @@ public class NameUtil {
                 com.google.gson.JsonObject jsonObject = new com.google.gson.Gson().fromJson(reader, com.google.gson.JsonObject.class);
                 
                 for (Map.Entry<String, com.google.gson.JsonElement> entry : jsonObject.entrySet()) {
-                    itemNames.put(entry.getKey(), entry.getValue().getAsString());
+                    String key = entry.getKey();
+                    String value = entry.getValue().getAsString();
+                    
+                    if (key.startsWith("entity.minecraft.")) {
+                        entityNames.put(key, value);
+                    } else {
+                        itemNames.put(key, value);
+                    }
                 }
             } catch (IOException ignored) {}
         }

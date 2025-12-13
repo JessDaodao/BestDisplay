@@ -11,7 +11,7 @@ import java.util.*;
 
 public class VillagerEvent implements Listener {
     private final BestDisplay plugin;
-    private final Map<UUID, ArmorStand> displayMap = new HashMap<>();
+    private final Map<UUID, List<ArmorStand>> displayMap = new HashMap<>();
     
     public VillagerEvent(BestDisplay plugin) {
         this.plugin = plugin;
@@ -49,36 +49,60 @@ public class VillagerEvent implements Listener {
     private void displayVillagerInfo(Villager villager) {
         UUID villagerId = villager.getUniqueId();
         
+        if (villager.getProfession() == Villager.Profession.NONE || villager.getProfession() == Villager.Profession.NITWIT) {
+            return;
+        }
+        
         if (displayMap.containsKey(villagerId)) {
-            displayMap.get(villagerId).remove();
+            for (ArmorStand armorStand : displayMap.get(villagerId)) {
+                armorStand.remove();
+            }
         }
         
         String professionName = getVillagerProfessionName(villager.getProfession());
         String villagerLevel = getVillagerLevel(villager.getVillagerLevel());
 
-        String displayText = professionName + " §7(§f" + villagerLevel + "§7)";
+        String topText = professionName;
+        String bottomText = "§7(§f" + villagerLevel + "§7)";
         
         Location villagerLocation = villager.getLocation();
-        Location displayLocation = villagerLocation.clone().add(0, 2.2, 0);
+        Location topDisplayLocation = villagerLocation.clone().add(0, 2.4, 0);
+        Location bottomDisplayLocation = villagerLocation.clone().add(0, 2.1, 0);
         
-        ArmorStand display = villager.getWorld().spawn(displayLocation, ArmorStand.class, armorStand -> {
+        ArmorStand topDisplay = villager.getWorld().spawn(topDisplayLocation, ArmorStand.class, armorStand -> {
             armorStand.setVisible(false);
             armorStand.setGravity(false);
             armorStand.setInvulnerable(true);
             armorStand.setCustomNameVisible(true);
             armorStand.setMarker(true);
             armorStand.setSmall(true);
-            armorStand.setCustomName(displayText);
+            armorStand.setCustomName(topText);
             armorStand.addScoreboardTag("BestDisplay");
         });
         
-        displayMap.put(villagerId, display);
+        ArmorStand bottomDisplay = villager.getWorld().spawn(bottomDisplayLocation, ArmorStand.class, armorStand -> {
+            armorStand.setVisible(false);
+            armorStand.setGravity(false);
+            armorStand.setInvulnerable(true);
+            armorStand.setCustomNameVisible(true);
+            armorStand.setMarker(true);
+            armorStand.setSmall(true);
+            armorStand.setCustomName(bottomText);
+            armorStand.addScoreboardTag("BestDisplay");
+        });
+        
+        List<ArmorStand> displays = new ArrayList<>();
+        displays.add(topDisplay);
+        displays.add(bottomDisplay);
+        displayMap.put(villagerId, displays);
 
         new BukkitRunnable() {
             @Override
             public void run() {
                 if (displayMap.containsKey(villagerId)) {
-                    displayMap.get(villagerId).remove();
+                    for (ArmorStand armorStand : displayMap.get(villagerId)) {
+                        armorStand.remove();
+                    }
                     displayMap.remove(villagerId);
                 }
             }
@@ -89,7 +113,20 @@ public class VillagerEvent implements Listener {
             public void run() {
                 if (villager.isDead() || !villager.isValid()) {
                     if (displayMap.containsKey(villagerId)) {
-                        displayMap.get(villagerId).remove();
+                        for (ArmorStand armorStand : displayMap.get(villagerId)) {
+                            armorStand.remove();
+                        }
+                        displayMap.remove(villagerId);
+                    }
+                    this.cancel();
+                    return;
+                }
+
+                if (villager.getProfession() == Villager.Profession.NONE || villager.getProfession() == Villager.Profession.NITWIT) {
+                    if (displayMap.containsKey(villagerId)) {
+                        for (ArmorStand armorStand : displayMap.get(villagerId)) {
+                            armorStand.remove();
+                        }
                         displayMap.remove(villagerId);
                     }
                     this.cancel();
@@ -97,15 +134,19 @@ public class VillagerEvent implements Listener {
                 }
 
                 if (displayMap.containsKey(villagerId)) {
-                    ArmorStand armorStand = displayMap.get(villagerId);
-                    if (armorStand.isValid()) {
+                    List<ArmorStand> armorStands = displayMap.get(villagerId);
+                    if (armorStands.size() >= 2 && armorStands.get(0).isValid() && armorStands.get(1).isValid()) {
                         Location currentLocation = villager.getLocation();
-                        armorStand.teleport(currentLocation.clone().add(0, 2.2, 0));
+                        armorStands.get(0).teleport(currentLocation.clone().add(0, 2.4, 0));
+                        armorStands.get(1).teleport(currentLocation.clone().add(0, 2.1, 0));
 
                         String currentProfessionName = getVillagerProfessionName(villager.getProfession());
                         String currentVillagerLevel = getVillagerLevel(villager.getVillagerLevel());
-                        String currentDisplayText = currentProfessionName + " §7(§f" + currentVillagerLevel + "§7)";
-                        armorStand.setCustomName(currentDisplayText);
+                        String currentTopText = currentProfessionName;
+                        String currentBottomText = "§7(§f" + currentVillagerLevel + "§7)";
+                        
+                        armorStands.get(0).setCustomName(currentTopText);
+                        armorStands.get(1).setCustomName(currentBottomText);
                     }
                 }
             }
@@ -147,9 +188,13 @@ public class VillagerEvent implements Listener {
     }
     
     public void cleanup() {
-        for (ArmorStand armorStand : displayMap.values()) {
-            if (armorStand != null) {
-                armorStand.remove();
+        for (List<ArmorStand> armorStands : displayMap.values()) {
+            if (armorStands != null) {
+                for (ArmorStand armorStand : armorStands) {
+                    if (armorStand != null) {
+                        armorStand.remove();
+                    }
+                }
             }
         }
         displayMap.clear();

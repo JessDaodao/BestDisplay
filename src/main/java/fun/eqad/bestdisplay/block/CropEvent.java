@@ -12,7 +12,7 @@ import java.util.*;
 
 public class CropEvent implements Listener {
     private final BestDisplay plugin;
-    private final Map<Location, ArmorStand> displayMap = new HashMap<>();
+    private final Map<Location, List<ArmorStand>> displayMap = new HashMap<>();
     
     public CropEvent(BestDisplay plugin) {
         this.plugin = plugin;
@@ -25,7 +25,7 @@ public class CropEvent implements Listener {
         Player player = event.getPlayer();
 
         Location playerLoc = player.getLocation();
-        List<Block> nearbyCrops = findAllNearbyCrops(playerLoc, 3);
+        List<Block> nearbyCrops = findAllNearbyCrops(playerLoc, 4);
         
         if (nearbyCrops.isEmpty()) return;
         
@@ -46,34 +46,52 @@ public class CropEvent implements Listener {
 
                 String cropName = getCropName(material);
 
-                String displayText;
+                String topText = cropName;
+                String bottomText;
 
                 if (percentage >= 100) {
-                    displayText = cropName + " §7(§a已成熟§7)";
+                    bottomText = "§7(§a已成熟§7)";
                 } else {
-                    displayText = cropName + " §7(§f" + percentage + "%§7)";
+                    bottomText = "§7(§f" + percentage + "%§7)";
                 }
 
-                Location displayLocation = cropLocation.clone().add(0.5, 1.6, 0.5);
+                Location topDisplayLocation = cropLocation.clone().add(0.5, 1.8, 0.5);
+                Location bottomDisplayLocation = cropLocation.clone().add(0.5, 1.5, 0.5);
                 
-                ArmorStand display = crop.getWorld().spawn(displayLocation, ArmorStand.class, armorStand -> {
+                ArmorStand topDisplay = crop.getWorld().spawn(topDisplayLocation, ArmorStand.class, armorStand -> {
                     armorStand.setVisible(false);
                     armorStand.setGravity(false);
                     armorStand.setInvulnerable(true);
                     armorStand.setCustomNameVisible(true);
                     armorStand.setMarker(true);
                     armorStand.setSmall(true);
-                    armorStand.setCustomName(displayText);
+                    armorStand.setCustomName(topText);
                     armorStand.addScoreboardTag("BestDisplay");
                 });
                 
-                displayMap.put(cropLocation, display);
+                ArmorStand bottomDisplay = crop.getWorld().spawn(bottomDisplayLocation, ArmorStand.class, armorStand -> {
+                    armorStand.setVisible(false);
+                    armorStand.setGravity(false);
+                    armorStand.setInvulnerable(true);
+                    armorStand.setCustomNameVisible(true);
+                    armorStand.setMarker(true);
+                    armorStand.setSmall(true);
+                    armorStand.setCustomName(bottomText);
+                    armorStand.addScoreboardTag("BestDisplay");
+                });
+                
+                List<ArmorStand> displays = new ArrayList<>();
+                displays.add(topDisplay);
+                displays.add(bottomDisplay);
+                displayMap.put(cropLocation, displays);
 
                 new BukkitRunnable() {
                     @Override
                     public void run() {
                         if (displayMap.containsKey(cropLocation)) {
-                            displayMap.get(cropLocation).remove();
+                            for (ArmorStand display : displayMap.get(cropLocation)) {
+                                display.remove();
+                            }
                             displayMap.remove(cropLocation);
                         }
                     }
