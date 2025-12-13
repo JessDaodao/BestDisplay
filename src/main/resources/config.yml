@@ -1,0 +1,17 @@
+# BestDisplay配置文件
+
+messages:
+  # 插件消息前缀
+  prefix: "&8[&bBestDisplay&8]&r "
+
+settings:
+  display:
+    # 是否在实体头顶显示扣血横幅
+    damage_above: true
+    # 是否在实体头顶显示回血横幅
+    healing_above: true
+    # 是否在动作栏显示受击实体血量
+    health_action_bar: true
+  sound:
+    # 是否在玩家射中实体时播放音效
+    arrow: true

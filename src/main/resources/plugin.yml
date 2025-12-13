@@ -1,0 +1,14 @@
+name: BestDisplay
+version: '1.0.0'
+main: fun.eqad.bestdisplay.BestDisplay
+api-version: '1.20'
+author: EQAD Network
+commands:
+  bestdisplay:
+    description: BestDisplay命令
+    usage: /bestdisplay
+    aliases: ['bd']
+permissions:
+  bestdisplay.admin:
+    description: 允许使用管理员指令
+    default: op
