@@ -63,7 +63,7 @@ public class VillagerEvent implements Listener {
         String villagerLevel = getVillagerLevel(villager.getVillagerLevel());
 
         String topText = professionName;
-        String bottomText = "§7(§f" + villagerLevel + "§7)";
+        String bottomText = "§7" + villagerLevel;
         
         Location villagerLocation = villager.getLocation();
         Location topDisplayLocation = villagerLocation.clone().add(0, 2.4, 0);
@@ -143,14 +143,14 @@ public class VillagerEvent implements Listener {
                         String currentProfessionName = getVillagerProfessionName(villager.getProfession());
                         String currentVillagerLevel = getVillagerLevel(villager.getVillagerLevel());
                         String currentTopText = currentProfessionName;
-                        String currentBottomText = "§7(§f" + currentVillagerLevel + "§7)";
+                        String currentBottomText = "§7" + currentVillagerLevel;
                         
                         armorStands.get(0).setCustomName(currentTopText);
                         armorStands.get(1).setCustomName(currentBottomText);
                     }
                 }
             }
-        }.runTaskTimer(plugin, 0L, 1L);
+        }.runTaskTimer(plugin, 0L, 10L);
     }
     
     private String getVillagerProfessionName(Villager.Profession profession) {

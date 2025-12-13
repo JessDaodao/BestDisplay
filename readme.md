@@ -41,6 +41,8 @@ settings:
     crop: true
     # 是否在蜂巢/蜂箱上方显示蜜蜂数量与储蜜量
     bee_nest: true
+    # 是否在熔炉/高炉/烟熏炉上方显示烧炼信息
+    furnace: true
     # 是否在村民头顶显示职业与等级信息
     villager: true
     # 是否在点燃的TNT上方显示爆炸倒计时

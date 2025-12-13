@@ -50,9 +50,9 @@ public class CropEvent implements Listener {
                 String bottomText;
 
                 if (percentage >= 100) {
-                    bottomText = "§7(§a已成熟§7)";
+                    bottomText = "§a已成熟";
                 } else {
-                    bottomText = "§7(§f" + percentage + "%§7)";
+                    bottomText = "§7" + percentage + "%";
                 }
 
                 Location topDisplayLocation = cropLocation.clone().add(0.5, 1.8, 0.5);

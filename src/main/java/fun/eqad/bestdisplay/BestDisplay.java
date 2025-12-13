@@ -7,6 +7,7 @@ import fun.eqad.bestdisplay.command.CommandManager;
 import fun.eqad.bestdisplay.entity.*;
 import fun.eqad.bestdisplay.block.CropEvent;
 import fun.eqad.bestdisplay.block.BeeNestEvent;
+import fun.eqad.bestdisplay.block.FurnaceEvent;
 import org.bukkit.event.*;
 import org.bukkit.plugin.java.JavaPlugin;
 import java.io.*;
@@ -18,6 +19,7 @@ public final class BestDisplay extends JavaPlugin implements Listener {
     private DropEvent dropEvent;
     private CropEvent cropEvent;
     private BeeNestEvent beeNestEvent;
+    private FurnaceEvent furnaceEvent;
     private VillagerEvent villagerEvent;
     private TNTEvent tntEvent;
 
@@ -27,6 +29,7 @@ public final class BestDisplay extends JavaPlugin implements Listener {
     public DropEvent getDropEvent() { return dropEvent; }
     public CropEvent getCropEvent() { return cropEvent; }
     public BeeNestEvent getBeeNestEvent() { return beeNestEvent; }
+    public FurnaceEvent getFurnaceEvent() { return furnaceEvent; }
     public VillagerEvent getVillagerEvent() { return villagerEvent; }
     public TNTEvent getTNTEvent() { return tntEvent; }
 
@@ -47,6 +50,7 @@ public final class BestDisplay extends JavaPlugin implements Listener {
         this.dropEvent = new DropEvent(this);
         this.cropEvent = new CropEvent(this);
         this.beeNestEvent = new BeeNestEvent(this);
+        this.furnaceEvent = new FurnaceEvent(this);
         this.villagerEvent = new VillagerEvent(this);
         this.tntEvent = new TNTEvent(this);
         
@@ -55,6 +59,7 @@ public final class BestDisplay extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(dropEvent, this);
         getServer().getPluginManager().registerEvents(cropEvent, this);
         getServer().getPluginManager().registerEvents(beeNestEvent, this);
+        getServer().getPluginManager().registerEvents(furnaceEvent, this);
         getServer().getPluginManager().registerEvents(villagerEvent, this);
         getServer().getPluginManager().registerEvents(tntEvent, this);
         getCommand("bestdisplay").setExecutor(new CommandManager(this));
@@ -74,9 +79,11 @@ public final class BestDisplay extends JavaPlugin implements Listener {
     public void onDisable() {
         cleanupArmorStands();
 
-        if (tntEvent != null || villagerEvent != null) {
+        if (tntEvent != null || villagerEvent != null || beeNestEvent != null || furnaceEvent != null) {
             tntEvent.cleanup();
             villagerEvent.cleanup();
+            beeNestEvent.cleanup();
+            furnaceEvent.cleanup();
         }
         
         getLogger().info("BestDisplay已成功卸载");
