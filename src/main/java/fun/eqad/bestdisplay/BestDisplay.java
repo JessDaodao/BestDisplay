@@ -16,6 +16,7 @@ public final class BestDisplay extends JavaPlugin implements Listener {
     private HitEvent hitEvent;
     private DropEvent dropEvent;
     private CropEvent cropEvent;
+    private VillagerEvent villagerEvent;
     private TNTEvent tntEvent;
 
     public ConfigManager getConfigManager() { return config; }
@@ -23,6 +24,7 @@ public final class BestDisplay extends JavaPlugin implements Listener {
     public HitEvent getHitEvent() { return hitEvent; }
     public DropEvent getDropEvent() { return dropEvent; }
     public CropEvent getCropEvent() { return cropEvent; }
+    public VillagerEvent getVillagerEvent() { return villagerEvent; }
     public TNTEvent getTNTEvent() { return tntEvent; }
 
     @Override
@@ -41,12 +43,14 @@ public final class BestDisplay extends JavaPlugin implements Listener {
         this.hitEvent = new HitEvent(this);
         this.dropEvent = new DropEvent(this);
         this.cropEvent = new CropEvent(this);
+        this.villagerEvent = new VillagerEvent(this);
         this.tntEvent = new TNTEvent(this);
         
         new bStats(this, 28325);
         getServer().getPluginManager().registerEvents(hitEvent, this);
         getServer().getPluginManager().registerEvents(dropEvent, this);
         getServer().getPluginManager().registerEvents(cropEvent, this);
+        getServer().getPluginManager().registerEvents(villagerEvent, this);
         getServer().getPluginManager().registerEvents(tntEvent, this);
         getCommand("bestdisplay").setExecutor(new CommandManager(this));
         getCommand("bestdisplay").setTabCompleter(new CommandManager(this));
@@ -64,9 +68,12 @@ public final class BestDisplay extends JavaPlugin implements Listener {
     @Override
     public void onDisable() {
         cleanupArmorStands();
-        if (tntEvent != null) {
+
+        if (tntEvent != null || villagerEvent != null) {
             tntEvent.cleanup();
+            villagerEvent.cleanup();
         }
+        
         getLogger().info("BestDisplay已成功卸载");
     }
     
