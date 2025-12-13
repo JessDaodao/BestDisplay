@@ -5,11 +5,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>fun.eqad</groupId>
-    <artifactId>bestdisplay</artifactId>
+    <artifactId>BestDisplay</artifactId>
     <version>1.0.0</version>
     <packaging>jar</packaging>
 
-    <name>bestdisplay</name>
+    <name>BestDisplay</name>
 
     <properties>
         <java.version>17</java.version>
