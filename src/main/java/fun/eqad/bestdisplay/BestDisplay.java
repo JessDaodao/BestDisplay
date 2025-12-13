@@ -22,7 +22,7 @@ public final class BestDisplay extends JavaPlugin implements Listener {
         getLogger().info("/ \\/  \\  __/\\__ \\ |_ / /_//| \\__ \\ |_) | | (_| | |_| |");
         getLogger().info("\\_____/\\___||___/\\__/___,' |_|___/ .__/|_|\\__,_|\\__, |");
         getLogger().info("                                 |_|            |___/");
-        getLogger().info("我在世间你");
+        getLogger().info("我在世间你...");
         getLogger().info("Author: EQAD Network");
 
         this.config = new ConfigManager(this);
