@@ -1,12 +1,12 @@
 <div align="center">
 
-## BestHealth - 现代化伤害显示
+## BestDisplay - 现代化事件显示
 
 </div>
 
 ## 简介
 
-该插件提供了现代化的伤害显示
+该插件提供了现代化的事件显示
 在玩家攻击实体/其他玩家时，插件会在动作栏显示受击实体/玩家的生命值等信息
 
 注：史山，请捏住鼻子查看源代码
@@ -14,19 +14,19 @@
 ## 其他
 
 ### 命令
-- `/bh reload` 重载配置文件
+- `/bd reload` 重载配置文件
 
 ### 权限节点
-- `besthealth.admin` 管理员命令
+- `bestdisplay.admin` 管理员命令
 
 ### 配置文件
 
 ```yaml
-# BestHealth配置文件
+# BestDisplay配置文件
 
 messages:
   # 插件消息前缀
-  prefix: "&8[&bBestHealth&8]&r "
+  prefix: "&8[&bBestDisplay&8]&r "
 
 settings:
   display:

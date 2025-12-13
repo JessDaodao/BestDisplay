@@ -60,7 +60,7 @@ public class CommandManager implements CommandExecutor, TabCompleter {
 
     private void about(CommandSender sender) {
         sender.sendMessage(plugin.getConfigManager().getMessagePrefix() + "§7关于BestDisplay:");
-        sender.sendMessage(" §7现代化伤害显示");
+        sender.sendMessage(" §7现代化事件显示");
         sender.sendMessage(" §7版本 §8- §7" + plugin.getDescription().getVersion());
     }
 

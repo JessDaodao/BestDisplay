@@ -13,10 +13,10 @@ import org.bukkit.projectiles.ProjectileSource;
 import org.bukkit.scheduler.BukkitRunnable;
 import java.util.*;
 
-public class EntityEvent implements Listener {
+public class HitEvent implements Listener {
     private final BestDisplay plugin;
 
-    public EntityEvent(BestDisplay plugin) {
+    public HitEvent(BestDisplay plugin) {
         this.plugin = plugin;
     }
 
