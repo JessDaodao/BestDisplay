@@ -16,14 +16,16 @@ settings:
     drop: true
     # 是否在农作物上方显示成熟度
     crop: true
+    # 是否在点燃的TNT上方显示爆炸倒计时
+    tnt: true
+    # 是否在村民头顶显示职业与等级信息
+    villager: true
     # 是否在蜂巢/蜂箱上方显示蜜蜂数量与储蜜量
     bee_nest: true
     # 是否在熔炉/高炉/烟熏炉上方显示烧炼信息
     furnace: true
-    # 是否在村民头顶显示职业与等级信息
-    villager: true
-    # 是否在点燃的TNT上方显示爆炸倒计时
-    tnt: true
+    # 是否在附魔台上方显示最大附魔等级
+    enchanting_table: true
   sound:
     # 是否在玩家射中实体时播放音效
     arrow: true

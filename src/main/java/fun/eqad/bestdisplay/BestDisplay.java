@@ -5,9 +5,7 @@ import fun.eqad.bestdisplay.bstats.bStats;
 import fun.eqad.bestdisplay.config.ConfigManager;
 import fun.eqad.bestdisplay.command.CommandManager;
 import fun.eqad.bestdisplay.entity.*;
-import fun.eqad.bestdisplay.block.CropEvent;
-import fun.eqad.bestdisplay.block.BeeNestEvent;
-import fun.eqad.bestdisplay.block.FurnaceEvent;
+import fun.eqad.bestdisplay.block.*;
 import org.bukkit.event.*;
 import org.bukkit.plugin.java.JavaPlugin;
 import java.io.*;
@@ -20,6 +18,7 @@ public final class BestDisplay extends JavaPlugin implements Listener {
     private CropEvent cropEvent;
     private BeeNestEvent beeNestEvent;
     private FurnaceEvent furnaceEvent;
+    private EnchantingTableEvent enchantingTableEvent;
     private VillagerEvent villagerEvent;
     private TNTEvent tntEvent;
 
@@ -30,18 +29,19 @@ public final class BestDisplay extends JavaPlugin implements Listener {
     public CropEvent getCropEvent() { return cropEvent; }
     public BeeNestEvent getBeeNestEvent() { return beeNestEvent; }
     public FurnaceEvent getFurnaceEvent() { return furnaceEvent; }
+    public EnchantingTableEvent getEnchantingTableEvent() { return enchantingTableEvent; }
     public VillagerEvent getVillagerEvent() { return villagerEvent; }
     public TNTEvent getTNTEvent() { return tntEvent; }
 
     @Override
     public void onEnable() {
-        getLogger().info("   ___           _      ___ _           _");
-        getLogger().info("  / __\\ ___  ___| |_   /   (_)___ _ __ | | __ _ _   _");
-        getLogger().info(" /__\\/// _ \\/ __| __| / /\\ / / __| '_ \\| |/ _` | | | |");
-        getLogger().info("/ \\/  \\  __/\\__ \\ |_ / /_//| \\__ \\ |_) | | (_| | |_| |");
-        getLogger().info("\\_____/\\___||___/\\__/___,' |_|___/ .__/|_|\\__,_|\\__, |");
-        getLogger().info("                                 |_|            |___/");
-        getLogger().info("我在世间你...");
+        getLogger().info("________            __________________               ______");
+        getLogger().info("___  __ )_____________  /___  __ \\__(_)_________________  /_____ _____  __");
+        getLogger().info("__  __  |  _ \\_  ___/  __/_  / / /_  /__  ___/__  __ \\_  /_  __ `/_  / / /");
+        getLogger().info("_  /_/ //  __/(__  )/ /_ _  /_/ /_  / _(__  )__  /_/ /  / / /_/ /_  /_/ /");
+        getLogger().info("/_____/ \\___//____/ \\__/ /_____/ /_/  /____/ _  .___//_/  \\__,_/ _\\__, /");
+        getLogger().info("                                             /_/                 /____/");
+        getLogger().info("我在视间你...");
         getLogger().info("Author: EQAD Network");
 
         this.config = new ConfigManager(this);
@@ -51,6 +51,7 @@ public final class BestDisplay extends JavaPlugin implements Listener {
         this.cropEvent = new CropEvent(this);
         this.beeNestEvent = new BeeNestEvent(this);
         this.furnaceEvent = new FurnaceEvent(this);
+        this.enchantingTableEvent = new EnchantingTableEvent(this);
         this.villagerEvent = new VillagerEvent(this);
         this.tntEvent = new TNTEvent(this);
         
@@ -60,6 +61,7 @@ public final class BestDisplay extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(cropEvent, this);
         getServer().getPluginManager().registerEvents(beeNestEvent, this);
         getServer().getPluginManager().registerEvents(furnaceEvent, this);
+        getServer().getPluginManager().registerEvents(enchantingTableEvent, this);
         getServer().getPluginManager().registerEvents(villagerEvent, this);
         getServer().getPluginManager().registerEvents(tntEvent, this);
         getCommand("bestdisplay").setExecutor(new CommandManager(this));
@@ -79,11 +81,18 @@ public final class BestDisplay extends JavaPlugin implements Listener {
     public void onDisable() {
         cleanupArmorStands();
 
-        if (tntEvent != null || villagerEvent != null || beeNestEvent != null || furnaceEvent != null) {
+        if (
+                tntEvent != null ||
+                villagerEvent != null ||
+                beeNestEvent != null ||
+                furnaceEvent != null ||
+                enchantingTableEvent != null
+        ) {
             tntEvent.cleanup();
             villagerEvent.cleanup();
             beeNestEvent.cleanup();
             furnaceEvent.cleanup();
+            enchantingTableEvent.cleanup();
         }
         
         getLogger().info("BestDisplay已成功卸载");
