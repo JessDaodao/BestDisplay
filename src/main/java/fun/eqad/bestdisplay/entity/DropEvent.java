@@ -111,6 +111,6 @@ public class DropEvent implements Listener {
                     displayMap.remove(itemId);
                 }
             }
-        }.runTaskLater(plugin, 20L * 120);
+        }.runTaskLater(plugin, 20L * 3600);
     }
 }
