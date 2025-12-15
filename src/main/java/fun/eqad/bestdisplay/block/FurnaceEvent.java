@@ -119,9 +119,9 @@ public class FurnaceEvent {
         Location topDisplayLocation, middleDisplayLocation, bottomDisplayLocation;
         
         if (hasBlockAbove) {
-            topDisplayLocation = furnaceLocation.clone().add(0.5, -0.5, 0.5);
-            middleDisplayLocation = furnaceLocation.clone().add(0.5, -0.8, 0.5);
-            bottomDisplayLocation = furnaceLocation.clone().add(0.5, -1.1, 0.5);
+            topDisplayLocation = furnaceLocation.clone().add(0.5, -0.6, 0.5);
+            middleDisplayLocation = furnaceLocation.clone().add(0.5, -0.9, 0.5);
+            bottomDisplayLocation = furnaceLocation.clone().add(0.5, -1.2, 0.5);
         } else {
             topDisplayLocation = furnaceLocation.clone().add(0.5, 1.6, 0.5);
             middleDisplayLocation = furnaceLocation.clone().add(0.5, 1.3, 0.5);

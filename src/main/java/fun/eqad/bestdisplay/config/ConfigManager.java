@@ -36,7 +36,7 @@ public class ConfigManager {
         plugin.reloadConfig();
         config = plugin.getConfig();
         messagePrefix = ChatColor.translateAlternateColorCodes('&', config.getString("messages.prefix", "&8[&bBestDisplay&8]&r "));
-        playerRadius = config.getInt("settings.player.radius", 8);
+        playerRadius = config.getInt("settings.player.radius", 6);
         damageAbove = config.getBoolean("settings.display.damage_above", true);
         healingAbove = config.getBoolean("settings.display.healing_above", true);
         healthActionBar = config.getBoolean("settings.display.health_action_bar", true);

@@ -28,6 +28,9 @@ messages:
   prefix: "&8[&bBestDisplay&8]&r "
 
 settings:
+  player:
+    # 横幅检测半径（方块）
+    radius: 15
   display:
     # 是否在实体头顶显示扣血横幅
     damage_above: true

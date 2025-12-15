@@ -105,8 +105,8 @@ public class EnchantingTableEvent {
         Location topDisplayLocation, bottomDisplayLocation;
         
         if (hasBlockAbove) {
-            topDisplayLocation = tableLocation.clone().add(0.5, -0.5, 0.5);
-            bottomDisplayLocation = tableLocation.clone().add(0.5, -0.8, 0.5);
+            topDisplayLocation = tableLocation.clone().add(0.5, -0.6, 0.5);
+            bottomDisplayLocation = tableLocation.clone().add(0.5, -0.9, 0.5);
         } else {
             topDisplayLocation = tableLocation.clone().add(0.5, 1.6, 0.5);
             bottomDisplayLocation = tableLocation.clone().add(0.5, 1.3, 0.5);

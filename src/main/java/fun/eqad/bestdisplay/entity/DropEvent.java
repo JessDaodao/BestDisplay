@@ -24,7 +24,7 @@ public class DropEvent {
                 updateAllDisplays();
             }
         };
-        updateTask.runTaskTimer(plugin, 0L, 2L);
+        updateTask.runTaskTimer(plugin, 0L, 1L);
     }
 
     private void updateAllDisplays() {
