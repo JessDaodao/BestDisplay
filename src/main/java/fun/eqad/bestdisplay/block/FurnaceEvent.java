@@ -66,31 +66,7 @@ public class FurnaceEvent {
                 continue;
             }
 
-            String furnaceName = getFurnaceName(block.getType());
-            String smeltingItem = "无";
-            int unsmeltedCount = 0;
-            
-            if (block.getState() instanceof org.bukkit.block.Furnace) {
-                org.bukkit.block.Furnace furnaceState = (org.bukkit.block.Furnace) block.getState();
-                FurnaceInventory inventory = furnaceState.getInventory();
-                
-                ItemStack smelting = inventory.getSmelting();
-                if (smelting != null && smelting.getType() != Material.AIR) {
-                    smeltingItem = getItemName(smelting);
-                    unsmeltedCount = smelting.getAmount();
-                }
-            }
-
-            String topText = furnaceName;
-            String middleText = "§7物品: §f" + smeltingItem;
-            String bottomText = "§7数量: §f" + unsmeltedCount;
-
-            List<ArmorStand> displays = entry.getValue();
-            if (displays.size() >= 3) {
-                displays.get(0).setCustomName(topText);
-                displays.get(1).setCustomName(middleText);
-                displays.get(2).setCustomName(bottomText);
-            }
+            updateFurnaceDisplay(block, block.getType(), entry.getValue());
         }
 
         for (Player player : playerList) {
@@ -190,6 +166,33 @@ public class FurnaceEvent {
         displays.add(middleDisplay);
         displays.add(bottomDisplay);
         displayMap.put(furnaceLocation, displays);
+    }
+    
+    private void updateFurnaceDisplay(Block furnace, Material material, List<ArmorStand> displays) {
+        String furnaceName = getFurnaceName(material);
+        String smeltingItem = "无";
+        int unsmeltedCount = 0;
+        
+        if (furnace.getState() instanceof org.bukkit.block.Furnace) {
+            org.bukkit.block.Furnace furnaceState = (org.bukkit.block.Furnace) furnace.getState();
+            FurnaceInventory inventory = furnaceState.getInventory();
+            
+            ItemStack smelting = inventory.getSmelting();
+            if (smelting != null && smelting.getType() != Material.AIR) {
+                smeltingItem = getItemName(smelting);
+                unsmeltedCount = smelting.getAmount();
+            }
+        }
+        
+        String topText = furnaceName;
+        String middleText = "§7物品: §f" + smeltingItem;
+        String bottomText = "§7数量: §f" + unsmeltedCount;
+
+        if (displays.size() >= 3) {
+            displays.get(0).setCustomName(topText);
+            displays.get(1).setCustomName(middleText);
+            displays.get(2).setCustomName(bottomText);
+        }
     }
     
     public void cleanup() {

@@ -53,6 +53,16 @@ public class CropEvent {
                     display.remove();
                 }
                 displayMap.remove(cropLocation);
+            } else {
+                Block block = cropLocation.getBlock();
+                if (isCrop(block.getType())) {
+                    updateCropDisplay(block, block.getType(), entry.getValue());
+                } else {
+                    for (ArmorStand display : entry.getValue()) {
+                        display.remove();
+                    }
+                    displayMap.remove(cropLocation);
+                }
             }
         }
 
@@ -172,6 +182,30 @@ public class CropEvent {
                 return true;
             default:
                 return false;
+        }
+    }
+    
+    private void updateCropDisplay(Block crop, Material material, List<ArmorStand> displays) {
+        Ageable ageable = (Ageable) crop.getBlockData();
+        int age = ageable.getAge();
+        int maxAge = ageable.getMaximumAge();
+
+        int percentage = (int) ((double) age / maxAge * 100);
+
+        String cropName = getCropName(material);
+
+        String topText = cropName;
+        String bottomText;
+
+        if (percentage >= 100) {
+            bottomText = "§a已成熟";
+        } else {
+            bottomText = "§7" + percentage + "%";
+        }
+
+        if (displays.size() >= 2) {
+            displays.get(0).setCustomName(topText);
+            displays.get(1).setCustomName(bottomText);
         }
     }
     

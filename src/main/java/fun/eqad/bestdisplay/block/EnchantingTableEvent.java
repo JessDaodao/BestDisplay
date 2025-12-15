@@ -64,17 +64,7 @@ public class EnchantingTableEvent {
                 continue;
             }
 
-            String tableName = getEnchantingTableName(block.getType());
-            String maxEnchantLevel = getMaxEnchantLevel(tableLocation);
-
-            String topText = tableName;
-            String bottomText = "§7等级: §f" + maxEnchantLevel;
-
-            List<ArmorStand> displays = entry.getValue();
-            if (displays.size() >= 2) {
-                displays.get(0).setCustomName(topText);
-                displays.get(1).setCustomName(bottomText);
-            }
+            updateEnchantingTableDisplay(block, block.getType(), entry.getValue());
         }
 
         for (Player player : playerList) {
@@ -109,7 +99,8 @@ public class EnchantingTableEvent {
         String maxEnchantLevel = getMaxEnchantLevel(tableLocation);
         
         String topText = tableName;
-        String bottomText = "§7等级: §f" + maxEnchantLevel;
+        String levelColor = maxEnchantLevel.equals("30") ? "§a" : "§f";
+        String bottomText = "§7等级: " + levelColor + maxEnchantLevel;
 
         Location topDisplayLocation, bottomDisplayLocation;
         
@@ -147,6 +138,21 @@ public class EnchantingTableEvent {
         displays.add(topDisplay);
         displays.add(bottomDisplay);
         displayMap.put(tableLocation, displays);
+    }
+    
+    private void updateEnchantingTableDisplay(Block table, Material material, List<ArmorStand> displays) {
+        Location tableLocation = table.getLocation();
+        String tableName = getEnchantingTableName(material);
+        String maxEnchantLevel = getMaxEnchantLevel(tableLocation);
+
+        String topText = tableName;
+        String levelColor = maxEnchantLevel.equals("30") ? "§a" : "§f";
+        String bottomText = "§7等级: " + levelColor + maxEnchantLevel;
+
+        if (displays.size() >= 2) {
+            displays.get(0).setCustomName(topText);
+            displays.get(1).setCustomName(bottomText);
+        }
     }
     
     public void cleanup() {

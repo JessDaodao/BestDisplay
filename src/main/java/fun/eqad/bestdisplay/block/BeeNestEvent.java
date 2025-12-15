@@ -52,6 +52,16 @@ public class BeeNestEvent {
                     display.remove();
                 }
                 displayMap.remove(nestLocation);
+            } else {
+                Block block = nestLocation.getBlock();
+                if (isBeeNest(block.getType())) {
+                    updateBeeNestDisplay(block, block.getType(), entry.getValue());
+                } else {
+                    for (ArmorStand display : entry.getValue()) {
+                        display.remove();
+                    }
+                    displayMap.remove(nestLocation);
+                }
             }
         }
 
@@ -220,6 +230,48 @@ public class BeeNestEvent {
     private boolean hasBlockAbove(Location location) {
         Location above = location.clone().add(0, 1, 0);
         return above.getBlock().getType() != Material.AIR;
+    }
+    
+    private void updateBeeNestDisplay(Block beeNest, Material material, List<ArmorStand> displays) {
+        String nestName = getBeeNestName(material);
+        
+        int beeCount = 0;
+        int honeyLevel;
+        int honeyPercentage = 0;
+        
+        if (beeNest.getState() instanceof org.bukkit.block.Beehive) {
+            org.bukkit.block.Beehive hiveState = (org.bukkit.block.Beehive) beeNest.getState();
+            beeCount = hiveState.getEntityCount();
+            
+            try {
+                org.bukkit.block.data.BlockData blockData = beeNest.getBlockData();
+                
+                if (blockData instanceof org.bukkit.block.data.type.Beehive) {
+                    java.lang.reflect.Method getHoneyLevel = blockData.getClass().getMethod("getHoneyLevel");
+                    honeyLevel = (int) getHoneyLevel.invoke(blockData);
+                    int maxHoneyLevel = 5;
+                    honeyPercentage = (int) ((double) honeyLevel / maxHoneyLevel * 100);
+                }
+            } catch (Exception e) {
+                return;
+            }
+        }
+        
+        String topText = nestName;
+        String middleText = "§7蜜蜂数量: §f" + beeCount;
+        String bottomText;
+        
+        if (honeyPercentage >= 100) {
+            bottomText = "§7储蜜量: §a已满";
+        } else {
+            bottomText = "§7储蜜量: §f" + honeyPercentage + "%";
+        }
+
+        if (displays.size() >= 3) {
+            displays.get(0).setCustomName(topText);
+            displays.get(1).setCustomName(middleText);
+            displays.get(2).setCustomName(bottomText);
+        }
     }
     
     private boolean hasBlockBelow(Location location) {
