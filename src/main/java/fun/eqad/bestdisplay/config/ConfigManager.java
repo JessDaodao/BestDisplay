@@ -9,6 +9,7 @@ public class ConfigManager {
     private final JavaPlugin plugin;
     private FileConfiguration config;
     private String messagePrefix;
+    private int playerRadius;
     private boolean damageAbove;
     private boolean healingAbove;
     private boolean healthActionBar;
@@ -35,6 +36,7 @@ public class ConfigManager {
         plugin.reloadConfig();
         config = plugin.getConfig();
         messagePrefix = ChatColor.translateAlternateColorCodes('&', config.getString("messages.prefix", "&8[&bBestDisplay&8]&r "));
+        playerRadius = config.getInt("settings.player.radius", 8);
         damageAbove = config.getBoolean("settings.display.damage_above", true);
         healingAbove = config.getBoolean("settings.display.healing_above", true);
         healthActionBar = config.getBoolean("settings.display.health_action_bar", true);
@@ -49,6 +51,7 @@ public class ConfigManager {
     }
 
     public String getMessagePrefix() { return messagePrefix; }
+    public int getPlayerRadius() { return playerRadius; }
     public boolean shouldDamageAbove() { return damageAbove; }
     public boolean shouldHealingAbove() { return healingAbove; }
     public boolean shouldHealthActionBar() { return healthActionBar; }

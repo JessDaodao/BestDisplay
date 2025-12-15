@@ -4,12 +4,10 @@ import fun.eqad.bestdisplay.BestDisplay;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.*;
-import org.bukkit.event.*;
-import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import java.util.*;
 
-public class BeeNestEvent implements Listener {
+public class BeeNestEvent {
     private final BestDisplay plugin;
     private final Map<Location, List<ArmorStand>> displayMap = new HashMap<>();
     private BukkitRunnable updateTask;
@@ -26,189 +24,148 @@ public class BeeNestEvent implements Listener {
                 updateAllDisplays();
             }
         };
-        updateTask.runTaskTimer(plugin, 0L, 10L);
+        updateTask.runTaskTimer(plugin, 0L, 2L);
     }
     
     private void updateAllDisplays() {
+        if (!plugin.getConfigManager().shouldBeeNestDisplay()) return;
+
+        Collection<? extends Player> players = Bukkit.getOnlinePlayers();
+
+        List<Player> playerList = new ArrayList<>(players);
+
         Map<Location, List<ArmorStand>> displayMapCopy = new HashMap<>(displayMap);
-        
         for (Map.Entry<Location, List<ArmorStand>> entry : displayMapCopy.entrySet()) {
             Location nestLocation = entry.getKey();
-            List<ArmorStand> displays = entry.getValue();
+            boolean hasNearbyPlayer = false;
 
-            Block block = nestLocation.getBlock();
-            if (!isBeeNest(block.getType())) {
-                for (ArmorStand display : displays) {
+            for (Player player : playerList) {
+                if (player.getWorld().equals(nestLocation.getWorld()) && 
+                    player.getLocation().distance(nestLocation) <= plugin.getConfigManager().getPlayerRadius()) {
+                    hasNearbyPlayer = true;
+                    break;
+                }
+            }
+
+            if (!hasNearbyPlayer) {
+                for (ArmorStand display : entry.getValue()) {
                     display.remove();
                 }
                 displayMap.remove(nestLocation);
-                continue;
             }
+        }
 
-            int beeCount = 0;
-            int honeyLevel;
-            int honeyPercentage = 0;
-            String nestName = getBeeNestName(block.getType());
+        for (Player player : playerList) {
+            Location playerLoc = player.getLocation();
+            List<Block> nearbyBeeNests = findAllNearbyBeeNests(playerLoc, plugin.getConfigManager().getPlayerRadius());
             
-            if (block.getState() instanceof org.bukkit.block.Beehive) {
-                org.bukkit.block.Beehive hiveState = (org.bukkit.block.Beehive) block.getState();
-                beeCount = hiveState.getEntityCount();
-                
-                try {
-                    org.bukkit.block.data.BlockData blockData = block.getBlockData();
-                    
-                    if (blockData instanceof org.bukkit.block.data.type.Beehive) {
-                        java.lang.reflect.Method getHoneyLevel = blockData.getClass().getMethod("getHoneyLevel");
-                        honeyLevel = (int) getHoneyLevel.invoke(blockData);
-                        int maxHoneyLevel = 5;
-                        honeyPercentage = (int) ((double) honeyLevel / maxHoneyLevel * 100);
-                    }
-                } catch (Exception e) {
+            for (Block beeNest : nearbyBeeNests) {
+                Location nestLocation = beeNest.getLocation();
+
+                if (displayMap.containsKey(nestLocation)) {
                     continue;
                 }
-            }
-
-            String topText = nestName;
-            String middleText = "§7蜜蜂数量: §f" + beeCount;
-            String bottomText;
-            
-            if (honeyPercentage >= 100) {
-                bottomText = "§7储蜜量: §a已满";
-            } else {
-                bottomText = "§7储蜜量: §f" + honeyPercentage + "%";
-            }
-
-            if (displays.size() >= 3) {
-                displays.get(0).setCustomName(topText);
-                displays.get(1).setCustomName(middleText);
-                displays.get(2).setCustomName(bottomText);
+                
+                Material material = beeNest.getType();
+                if (isBeeNest(material)) {
+                    displayBeeNestInfo(beeNest, material);
+                }
             }
         }
     }
     
-    @EventHandler
-    public void onPlayerMove(PlayerMoveEvent event) {
-        if (!plugin.getConfigManager().shouldBeeNestDisplay()) return;
-
-        Player player = event.getPlayer();
-        Location playerLoc = player.getLocation();
-        List<Block> nearbyBeeNests = findAllNearbyBeeNests(playerLoc, 4);
+    private void displayBeeNestInfo(Block beeNest, Material material) {
+        Location nestLocation = beeNest.getLocation();
+        String nestName = getBeeNestName(material);
+        boolean hasBlockAbove = hasBlockAbove(nestLocation);
+        boolean hasBlockBelow = hasBlockBelow(nestLocation);
         
-        if (nearbyBeeNests.isEmpty()) return;
+        if (hasBlockAbove && hasBlockBelow) {
+            return;
+        }
+
+        int beeCount = 0;
+        int honeyLevel;
+        int honeyPercentage = 0;
         
-        for (Block beeNest : nearbyBeeNests) {
-            Location nestLocation = beeNest.getLocation();
-            Material material = beeNest.getType();
-
-            if (isBeeNest(material)) {
-                if (displayMap.containsKey(nestLocation)) {
-                    continue;
+        if (beeNest.getState() instanceof org.bukkit.block.Beehive) {
+            org.bukkit.block.Beehive hiveState = (org.bukkit.block.Beehive) beeNest.getState();
+            beeCount = hiveState.getEntityCount();
+            
+            try {
+                org.bukkit.block.data.BlockData blockData = beeNest.getBlockData();
+                
+                if (blockData instanceof org.bukkit.block.data.type.Beehive) {
+                    java.lang.reflect.Method getHoneyLevel = blockData.getClass().getMethod("getHoneyLevel");
+                    honeyLevel = (int) getHoneyLevel.invoke(blockData);
+                    int maxHoneyLevel = 5;
+                    honeyPercentage = (int) ((double) honeyLevel / maxHoneyLevel * 100);
                 }
-
-                String nestName = getBeeNestName(material);
-                boolean hasBlockAbove = hasBlockAbove(nestLocation);
-                boolean hasBlockBelow = hasBlockBelow(nestLocation);
-                
-                if (hasBlockAbove && hasBlockBelow) {
-                    continue;
-                }
-
-                int beeCount = 0;
-                int honeyLevel;
-                int honeyPercentage = 0;
-                
-                if (beeNest.getState() instanceof org.bukkit.block.Beehive) {
-                    org.bukkit.block.Beehive hiveState = (org.bukkit.block.Beehive) beeNest.getState();
-                    beeCount = hiveState.getEntityCount();
-                    
-                    try {
-                        org.bukkit.block.data.BlockData blockData = beeNest.getBlockData();
-                        
-                        if (blockData instanceof org.bukkit.block.data.type.Beehive) {
-                            java.lang.reflect.Method getHoneyLevel = blockData.getClass().getMethod("getHoneyLevel");
-                            honeyLevel = (int) getHoneyLevel.invoke(blockData);
-                            int maxHoneyLevel = 5;
-                            honeyPercentage = (int) ((double) honeyLevel / maxHoneyLevel * 100);
-                        }
-                    } catch (Exception e) {
-                        continue;
-                    }
-                }
-                
-                String topText = nestName;
-                String middleText = "§7蜜蜂数量: §f" + beeCount;
-                String bottomText;
-                
-                if (honeyPercentage >= 100) {
-                    bottomText = "§7储蜜量: §a已满";
-                } else {
-                    bottomText = "§7储蜜量: §f" + honeyPercentage + "%";
-                }
-
-                Location topDisplayLocation, middleDisplayLocation, bottomDisplayLocation;
-                
-                if (hasBlockAbove) {
-                    topDisplayLocation = nestLocation.clone().add(0.5, -0.5, 0.5);
-                    middleDisplayLocation = nestLocation.clone().add(0.5, -0.8, 0.5);
-                    bottomDisplayLocation = nestLocation.clone().add(0.5, -1.1, 0.5);
-                } else {
-                    topDisplayLocation = nestLocation.clone().add(0.5, 1.6, 0.5);
-                    middleDisplayLocation = nestLocation.clone().add(0.5, 1.3, 0.5);
-                    bottomDisplayLocation = nestLocation.clone().add(0.5, 1.0, 0.5);
-                }
-                
-                ArmorStand topDisplay = beeNest.getWorld().spawn(topDisplayLocation, ArmorStand.class, armorStand -> {
-                    armorStand.setVisible(false);
-                    armorStand.setGravity(false);
-                    armorStand.setInvulnerable(true);
-                    armorStand.setCustomNameVisible(true);
-                    armorStand.setMarker(true);
-                    armorStand.setSmall(true);
-                    armorStand.setCustomName(topText);
-                    armorStand.addScoreboardTag("BestDisplay");
-                });
-                
-                ArmorStand middleDisplay = beeNest.getWorld().spawn(middleDisplayLocation, ArmorStand.class, armorStand -> {
-                    armorStand.setVisible(false);
-                    armorStand.setGravity(false);
-                    armorStand.setInvulnerable(true);
-                    armorStand.setCustomNameVisible(true);
-                    armorStand.setMarker(true);
-                    armorStand.setSmall(true);
-                    armorStand.setCustomName(middleText);
-                    armorStand.addScoreboardTag("BestDisplay");
-                });
-                
-                ArmorStand bottomDisplay = beeNest.getWorld().spawn(bottomDisplayLocation, ArmorStand.class, armorStand -> {
-                    armorStand.setVisible(false);
-                    armorStand.setGravity(false);
-                    armorStand.setInvulnerable(true);
-                    armorStand.setCustomNameVisible(true);
-                    armorStand.setMarker(true);
-                    armorStand.setSmall(true);
-                    armorStand.setCustomName(bottomText);
-                    armorStand.addScoreboardTag("BestDisplay");
-                });
-                
-                List<ArmorStand> displays = new ArrayList<>();
-                displays.add(topDisplay);
-                displays.add(middleDisplay);
-                displays.add(bottomDisplay);
-                displayMap.put(nestLocation, displays);
-
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        if (displayMap.containsKey(nestLocation)) {
-                            for (ArmorStand display : displayMap.get(nestLocation)) {
-                                display.remove();
-                            }
-                            displayMap.remove(nestLocation);
-                        }
-                    }
-                }.runTaskLater(plugin, 20L * 3);
+            } catch (Exception e) {
+                return;
             }
         }
+        
+        String topText = nestName;
+        String middleText = "§7蜜蜂数量: §f" + beeCount;
+        String bottomText;
+        
+        if (honeyPercentage >= 100) {
+            bottomText = "§7储蜜量: §a已满";
+        } else {
+            bottomText = "§7储蜜量: §f" + honeyPercentage + "%";
+        }
+
+        Location topDisplayLocation, middleDisplayLocation, bottomDisplayLocation;
+        
+        if (hasBlockAbove) {
+            topDisplayLocation = nestLocation.clone().add(0.5, -0.5, 0.5);
+            middleDisplayLocation = nestLocation.clone().add(0.5, -0.8, 0.5);
+            bottomDisplayLocation = nestLocation.clone().add(0.5, -1.1, 0.5);
+        } else {
+            topDisplayLocation = nestLocation.clone().add(0.5, 1.6, 0.5);
+            middleDisplayLocation = nestLocation.clone().add(0.5, 1.3, 0.5);
+            bottomDisplayLocation = nestLocation.clone().add(0.5, 1.0, 0.5);
+        }
+        
+        ArmorStand topDisplay = beeNest.getWorld().spawn(topDisplayLocation, ArmorStand.class, armorStand -> {
+            armorStand.setVisible(false);
+            armorStand.setGravity(false);
+            armorStand.setInvulnerable(true);
+            armorStand.setCustomNameVisible(true);
+            armorStand.setMarker(true);
+            armorStand.setSmall(true);
+            armorStand.setCustomName(topText);
+            armorStand.addScoreboardTag("BestDisplay");
+        });
+        
+        ArmorStand middleDisplay = beeNest.getWorld().spawn(middleDisplayLocation, ArmorStand.class, armorStand -> {
+            armorStand.setVisible(false);
+            armorStand.setGravity(false);
+            armorStand.setInvulnerable(true);
+            armorStand.setCustomNameVisible(true);
+            armorStand.setMarker(true);
+            armorStand.setSmall(true);
+            armorStand.setCustomName(middleText);
+            armorStand.addScoreboardTag("BestDisplay");
+        });
+        
+        ArmorStand bottomDisplay = beeNest.getWorld().spawn(bottomDisplayLocation, ArmorStand.class, armorStand -> {
+            armorStand.setVisible(false);
+            armorStand.setGravity(false);
+            armorStand.setInvulnerable(true);
+            armorStand.setCustomNameVisible(true);
+            armorStand.setMarker(true);
+            armorStand.setSmall(true);
+            armorStand.setCustomName(bottomText);
+            armorStand.addScoreboardTag("BestDisplay");
+        });
+        
+        List<ArmorStand> displays = new ArrayList<>();
+        displays.add(topDisplay);
+        displays.add(middleDisplay);
+        displays.add(bottomDisplay);
+        displayMap.put(nestLocation, displays);
     }
     
     public void cleanup() {

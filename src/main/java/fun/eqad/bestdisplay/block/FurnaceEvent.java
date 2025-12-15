@@ -4,14 +4,12 @@ import fun.eqad.bestdisplay.BestDisplay;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.*;
-import org.bukkit.event.*;
-import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.FurnaceInventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import java.util.*;
 
-public class FurnaceEvent implements Listener {
+public class FurnaceEvent {
     private final BestDisplay plugin;
     private final Map<Location, List<ArmorStand>> displayMap = new HashMap<>();
     private BukkitRunnable updateTask;
@@ -28,19 +26,40 @@ public class FurnaceEvent implements Listener {
                 updateAllDisplays();
             }
         };
-        updateTask.runTaskTimer(plugin, 0L, 10L);
+        updateTask.runTaskTimer(plugin, 0L, 2L);
     }
     
     private void updateAllDisplays() {
+        if (!plugin.getConfigManager().shouldFurnaceDisplay()) return;
+
+        Collection<? extends Player> players = Bukkit.getOnlinePlayers();
+
+        List<Player> playerList = new ArrayList<>(players);
+
         Map<Location, List<ArmorStand>> displayMapCopy = new HashMap<>(displayMap);
-        
         for (Map.Entry<Location, List<ArmorStand>> entry : displayMapCopy.entrySet()) {
             Location furnaceLocation = entry.getKey();
-            List<ArmorStand> displays = entry.getValue();
+            boolean hasNearbyPlayer = false;
+
+            for (Player player : playerList) {
+                if (player.getWorld().equals(furnaceLocation.getWorld()) && 
+                    player.getLocation().distance(furnaceLocation) <= plugin.getConfigManager().getPlayerRadius()) {
+                    hasNearbyPlayer = true;
+                    break;
+                }
+            }
+
+            if (!hasNearbyPlayer) {
+                for (ArmorStand display : entry.getValue()) {
+                    display.remove();
+                }
+                displayMap.remove(furnaceLocation);
+                continue;
+            }
 
             Block block = furnaceLocation.getBlock();
             if (!isFurnace(block.getType())) {
-                for (ArmorStand display : displays) {
+                for (ArmorStand display : entry.getValue()) {
                     display.remove();
                 }
                 displayMap.remove(furnaceLocation);
@@ -66,123 +85,111 @@ public class FurnaceEvent implements Listener {
             String middleText = "§7物品: §f" + smeltingItem;
             String bottomText = "§7数量: §f" + unsmeltedCount;
 
+            List<ArmorStand> displays = entry.getValue();
             if (displays.size() >= 3) {
                 displays.get(0).setCustomName(topText);
                 displays.get(1).setCustomName(middleText);
                 displays.get(2).setCustomName(bottomText);
             }
         }
-    }
-    
-    @EventHandler
-    public void onPlayerMove(PlayerMoveEvent event) {
-        if (!plugin.getConfigManager().shouldFurnaceDisplay()) return;
 
-        Player player = event.getPlayer();
-        Location playerLoc = player.getLocation();
-        List<Block> nearbyFurnaces = findAllNearbyFurnaces(playerLoc, 4);
-        
-        if (nearbyFurnaces.isEmpty()) return;
-        
-        for (Block furnace : nearbyFurnaces) {
-            Location furnaceLocation = furnace.getLocation();
-            Material material = furnace.getType();
+        for (Player player : playerList) {
+            Location playerLoc = player.getLocation();
+            List<Block> nearbyFurnaces = findAllNearbyFurnaces(playerLoc, plugin.getConfigManager().getPlayerRadius());
+            
+            for (Block furnace : nearbyFurnaces) {
+                Location furnaceLocation = furnace.getLocation();
 
-            if (isFurnace(material)) {
                 if (displayMap.containsKey(furnaceLocation)) {
                     continue;
                 }
-
-                String furnaceName = getFurnaceName(material);
-                boolean hasBlockAbove = hasBlockAbove(furnaceLocation);
-                boolean hasBlockBelow = hasBlockBelow(furnaceLocation);
-
-                if (hasBlockAbove && hasBlockBelow) {
-                    continue;
+                
+                Material material = furnace.getType();
+                if (isFurnace(material)) {
+                    displayFurnaceInfo(furnace, material);
                 }
-
-                String smeltingItem = "无";
-                int unsmeltedCount = 0;
-                
-                if (furnace.getState() instanceof org.bukkit.block.Furnace) {
-                    org.bukkit.block.Furnace furnaceState = (org.bukkit.block.Furnace) furnace.getState();
-                    FurnaceInventory inventory = furnaceState.getInventory();
-                    
-                    ItemStack smelting = inventory.getSmelting();
-                    if (smelting != null && smelting.getType() != Material.AIR) {
-                        smeltingItem = getItemName(smelting);
-                        unsmeltedCount = smelting.getAmount();
-                    }
-                }
-                
-                String topText = furnaceName;
-                String middleText = "§7物品: §f" + smeltingItem;
-                String bottomText = "§7数量: §f" + unsmeltedCount;
-
-                Location topDisplayLocation, middleDisplayLocation, bottomDisplayLocation;
-                
-                if (hasBlockAbove) {
-                    topDisplayLocation = furnaceLocation.clone().add(0.5, -0.5, 0.5);
-                    middleDisplayLocation = furnaceLocation.clone().add(0.5, -0.8, 0.5);
-                    bottomDisplayLocation = furnaceLocation.clone().add(0.5, -1.1, 0.5);
-                } else {
-                    topDisplayLocation = furnaceLocation.clone().add(0.5, 1.6, 0.5);
-                    middleDisplayLocation = furnaceLocation.clone().add(0.5, 1.3, 0.5);
-                    bottomDisplayLocation = furnaceLocation.clone().add(0.5, 1.0, 0.5);
-                }
-                
-                ArmorStand topDisplay = furnace.getWorld().spawn(topDisplayLocation, ArmorStand.class, armorStand -> {
-                    armorStand.setVisible(false);
-                    armorStand.setGravity(false);
-                    armorStand.setInvulnerable(true);
-                    armorStand.setCustomNameVisible(true);
-                    armorStand.setMarker(true);
-                    armorStand.setSmall(true);
-                    armorStand.setCustomName(topText);
-                    armorStand.addScoreboardTag("BestDisplay");
-                });
-                
-                ArmorStand middleDisplay = furnace.getWorld().spawn(middleDisplayLocation, ArmorStand.class, armorStand -> {
-                    armorStand.setVisible(false);
-                    armorStand.setGravity(false);
-                    armorStand.setInvulnerable(true);
-                    armorStand.setCustomNameVisible(true);
-                    armorStand.setMarker(true);
-                    armorStand.setSmall(true);
-                    armorStand.setCustomName(middleText);
-                    armorStand.addScoreboardTag("BestDisplay");
-                });
-                
-                ArmorStand bottomDisplay = furnace.getWorld().spawn(bottomDisplayLocation, ArmorStand.class, armorStand -> {
-                    armorStand.setVisible(false);
-                    armorStand.setGravity(false);
-                    armorStand.setInvulnerable(true);
-                    armorStand.setCustomNameVisible(true);
-                    armorStand.setMarker(true);
-                    armorStand.setSmall(true);
-                    armorStand.setCustomName(bottomText);
-                    armorStand.addScoreboardTag("BestDisplay");
-                });
-                
-                List<ArmorStand> displays = new ArrayList<>();
-                displays.add(topDisplay);
-                displays.add(middleDisplay);
-                displays.add(bottomDisplay);
-                displayMap.put(furnaceLocation, displays);
-
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        if (displayMap.containsKey(furnaceLocation)) {
-                            for (ArmorStand display : displayMap.get(furnaceLocation)) {
-                                display.remove();
-                            }
-                            displayMap.remove(furnaceLocation);
-                        }
-                    }
-                }.runTaskLater(plugin, 20L * 3);
             }
         }
+    }
+    
+    private void displayFurnaceInfo(Block furnace, Material material) {
+        Location furnaceLocation = furnace.getLocation();
+        String furnaceName = getFurnaceName(material);
+        boolean hasBlockAbove = hasBlockAbove(furnaceLocation);
+        boolean hasBlockBelow = hasBlockBelow(furnaceLocation);
+
+        if (hasBlockAbove && hasBlockBelow) {
+            return;
+        }
+
+        String smeltingItem = "无";
+        int unsmeltedCount = 0;
+        
+        if (furnace.getState() instanceof org.bukkit.block.Furnace) {
+            org.bukkit.block.Furnace furnaceState = (org.bukkit.block.Furnace) furnace.getState();
+            FurnaceInventory inventory = furnaceState.getInventory();
+            
+            ItemStack smelting = inventory.getSmelting();
+            if (smelting != null && smelting.getType() != Material.AIR) {
+                smeltingItem = getItemName(smelting);
+                unsmeltedCount = smelting.getAmount();
+            }
+        }
+        
+        String topText = furnaceName;
+        String middleText = "§7物品: §f" + smeltingItem;
+        String bottomText = "§7数量: §f" + unsmeltedCount;
+
+        Location topDisplayLocation, middleDisplayLocation, bottomDisplayLocation;
+        
+        if (hasBlockAbove) {
+            topDisplayLocation = furnaceLocation.clone().add(0.5, -0.5, 0.5);
+            middleDisplayLocation = furnaceLocation.clone().add(0.5, -0.8, 0.5);
+            bottomDisplayLocation = furnaceLocation.clone().add(0.5, -1.1, 0.5);
+        } else {
+            topDisplayLocation = furnaceLocation.clone().add(0.5, 1.6, 0.5);
+            middleDisplayLocation = furnaceLocation.clone().add(0.5, 1.3, 0.5);
+            bottomDisplayLocation = furnaceLocation.clone().add(0.5, 1.0, 0.5);
+        }
+        
+        ArmorStand topDisplay = furnace.getWorld().spawn(topDisplayLocation, ArmorStand.class, armorStand -> {
+            armorStand.setVisible(false);
+            armorStand.setGravity(false);
+            armorStand.setInvulnerable(true);
+            armorStand.setCustomNameVisible(true);
+            armorStand.setMarker(true);
+            armorStand.setSmall(true);
+            armorStand.setCustomName(topText);
+            armorStand.addScoreboardTag("BestDisplay");
+        });
+        
+        ArmorStand middleDisplay = furnace.getWorld().spawn(middleDisplayLocation, ArmorStand.class, armorStand -> {
+            armorStand.setVisible(false);
+            armorStand.setGravity(false);
+            armorStand.setInvulnerable(true);
+            armorStand.setCustomNameVisible(true);
+            armorStand.setMarker(true);
+            armorStand.setSmall(true);
+            armorStand.setCustomName(middleText);
+            armorStand.addScoreboardTag("BestDisplay");
+        });
+        
+        ArmorStand bottomDisplay = furnace.getWorld().spawn(bottomDisplayLocation, ArmorStand.class, armorStand -> {
+            armorStand.setVisible(false);
+            armorStand.setGravity(false);
+            armorStand.setInvulnerable(true);
+            armorStand.setCustomNameVisible(true);
+            armorStand.setMarker(true);
+            armorStand.setSmall(true);
+            armorStand.setCustomName(bottomText);
+            armorStand.addScoreboardTag("BestDisplay");
+        });
+        
+        List<ArmorStand> displays = new ArrayList<>();
+        displays.add(topDisplay);
+        displays.add(middleDisplay);
+        displays.add(bottomDisplay);
+        displayMap.put(furnaceLocation, displays);
     }
     
     public void cleanup() {

@@ -4,12 +4,10 @@ import fun.eqad.bestdisplay.BestDisplay;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.*;
-import org.bukkit.event.*;
-import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import java.util.*;
 
-public class EnchantingTableEvent implements Listener {
+public class EnchantingTableEvent {
     private final BestDisplay plugin;
     private final Map<Location, List<ArmorStand>> displayMap = new HashMap<>();
     private BukkitRunnable updateTask;
@@ -26,19 +24,40 @@ public class EnchantingTableEvent implements Listener {
                 updateAllDisplays();
             }
         };
-        updateTask.runTaskTimer(plugin, 0L, 10L);
+        updateTask.runTaskTimer(plugin, 0L, 2L);
     }
     
     private void updateAllDisplays() {
+        if (!plugin.getConfigManager().shouldEnchantingTableDisplay()) return;
+
+        Collection<? extends Player> players = Bukkit.getOnlinePlayers();
+
+        List<Player> playerList = new ArrayList<>(players);
+
         Map<Location, List<ArmorStand>> displayMapCopy = new HashMap<>(displayMap);
-        
         for (Map.Entry<Location, List<ArmorStand>> entry : displayMapCopy.entrySet()) {
             Location tableLocation = entry.getKey();
-            List<ArmorStand> displays = entry.getValue();
+            boolean hasNearbyPlayer = false;
+
+            for (Player player : playerList) {
+                if (player.getWorld().equals(tableLocation.getWorld()) && 
+                    player.getLocation().distance(tableLocation) <= plugin.getConfigManager().getPlayerRadius()) {
+                    hasNearbyPlayer = true;
+                    break;
+                }
+            }
+
+            if (!hasNearbyPlayer) {
+                for (ArmorStand display : entry.getValue()) {
+                    display.remove();
+                }
+                displayMap.remove(tableLocation);
+                continue;
+            }
 
             Block block = tableLocation.getBlock();
             if (!isEnchantingTable(block.getType())) {
-                for (ArmorStand display : displays) {
+                for (ArmorStand display : entry.getValue()) {
                     display.remove();
                 }
                 displayMap.remove(tableLocation);
@@ -51,95 +70,83 @@ public class EnchantingTableEvent implements Listener {
             String topText = tableName;
             String bottomText = "§7等级: §f" + maxEnchantLevel;
 
+            List<ArmorStand> displays = entry.getValue();
             if (displays.size() >= 2) {
                 displays.get(0).setCustomName(topText);
                 displays.get(1).setCustomName(bottomText);
             }
         }
-    }
-    
-    @EventHandler
-    public void onPlayerMove(PlayerMoveEvent event) {
-        if (!plugin.getConfigManager().shouldEnchantingTableDisplay()) return;
 
-        Player player = event.getPlayer();
-        Location playerLoc = player.getLocation();
-        List<Block> nearbyTables = findAllNearbyEnchantingTables(playerLoc, 4);
-        
-        if (nearbyTables.isEmpty()) return;
-        
-        for (Block table : nearbyTables) {
-            Location tableLocation = table.getLocation();
-            Material material = table.getType();
+        for (Player player : playerList) {
+            Location playerLoc = player.getLocation();
+            List<Block> nearbyTables = findAllNearbyEnchantingTables(playerLoc, plugin.getConfigManager().getPlayerRadius());
+            
+            for (Block table : nearbyTables) {
+                Location tableLocation = table.getLocation();
 
-            if (isEnchantingTable(material)) {
                 if (displayMap.containsKey(tableLocation)) {
                     continue;
                 }
-
-                String tableName = getEnchantingTableName(material);
-                boolean hasBlockAbove = hasBlockAbove(tableLocation);
-                boolean hasBlockBelow = hasBlockBelow(tableLocation);
                 
-                if (hasBlockAbove && hasBlockBelow) {
-                    continue;
+                Material material = table.getType();
+                if (isEnchantingTable(material)) {
+                    displayEnchantingTableInfo(table, material);
                 }
-
-                String maxEnchantLevel = getMaxEnchantLevel(tableLocation);
-                
-                String topText = tableName;
-                String bottomText = "§7等级: §f" + maxEnchantLevel;
-
-                Location topDisplayLocation, bottomDisplayLocation;
-                
-                if (hasBlockAbove) {
-                    topDisplayLocation = tableLocation.clone().add(0.5, -0.5, 0.5);
-                    bottomDisplayLocation = tableLocation.clone().add(0.5, -0.8, 0.5);
-                } else {
-                    topDisplayLocation = tableLocation.clone().add(0.5, 1.6, 0.5);
-                    bottomDisplayLocation = tableLocation.clone().add(0.5, 1.3, 0.5);
-                }
-                
-                ArmorStand topDisplay = table.getWorld().spawn(topDisplayLocation, ArmorStand.class, armorStand -> {
-                    armorStand.setVisible(false);
-                    armorStand.setGravity(false);
-                    armorStand.setInvulnerable(true);
-                    armorStand.setCustomNameVisible(true);
-                    armorStand.setMarker(true);
-                    armorStand.setSmall(true);
-                    armorStand.setCustomName(topText);
-                    armorStand.addScoreboardTag("BestDisplay");
-                });
-                
-                ArmorStand bottomDisplay = table.getWorld().spawn(bottomDisplayLocation, ArmorStand.class, armorStand -> {
-                    armorStand.setVisible(false);
-                    armorStand.setGravity(false);
-                    armorStand.setInvulnerable(true);
-                    armorStand.setCustomNameVisible(true);
-                    armorStand.setMarker(true);
-                    armorStand.setSmall(true);
-                    armorStand.setCustomName(bottomText);
-                    armorStand.addScoreboardTag("BestDisplay");
-                });
-                
-                List<ArmorStand> displays = new ArrayList<>();
-                displays.add(topDisplay);
-                displays.add(bottomDisplay);
-                displayMap.put(tableLocation, displays);
-
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        if (displayMap.containsKey(tableLocation)) {
-                            for (ArmorStand display : displayMap.get(tableLocation)) {
-                                display.remove();
-                            }
-                            displayMap.remove(tableLocation);
-                        }
-                    }
-                }.runTaskLater(plugin, 20L * 3);
             }
         }
+    }
+    
+    private void displayEnchantingTableInfo(Block table, Material material) {
+        Location tableLocation = table.getLocation();
+        String tableName = getEnchantingTableName(material);
+        boolean hasBlockAbove = hasBlockAbove(tableLocation);
+        boolean hasBlockBelow = hasBlockBelow(tableLocation);
+        
+        if (hasBlockAbove && hasBlockBelow) {
+            return;
+        }
+
+        String maxEnchantLevel = getMaxEnchantLevel(tableLocation);
+        
+        String topText = tableName;
+        String bottomText = "§7等级: §f" + maxEnchantLevel;
+
+        Location topDisplayLocation, bottomDisplayLocation;
+        
+        if (hasBlockAbove) {
+            topDisplayLocation = tableLocation.clone().add(0.5, -0.5, 0.5);
+            bottomDisplayLocation = tableLocation.clone().add(0.5, -0.8, 0.5);
+        } else {
+            topDisplayLocation = tableLocation.clone().add(0.5, 1.6, 0.5);
+            bottomDisplayLocation = tableLocation.clone().add(0.5, 1.3, 0.5);
+        }
+        
+        ArmorStand topDisplay = table.getWorld().spawn(topDisplayLocation, ArmorStand.class, armorStand -> {
+            armorStand.setVisible(false);
+            armorStand.setGravity(false);
+            armorStand.setInvulnerable(true);
+            armorStand.setCustomNameVisible(true);
+            armorStand.setMarker(true);
+            armorStand.setSmall(true);
+            armorStand.setCustomName(topText);
+            armorStand.addScoreboardTag("BestDisplay");
+        });
+        
+        ArmorStand bottomDisplay = table.getWorld().spawn(bottomDisplayLocation, ArmorStand.class, armorStand -> {
+            armorStand.setVisible(false);
+            armorStand.setGravity(false);
+            armorStand.setInvulnerable(true);
+            armorStand.setCustomNameVisible(true);
+            armorStand.setMarker(true);
+            armorStand.setSmall(true);
+            armorStand.setCustomName(bottomText);
+            armorStand.addScoreboardTag("BestDisplay");
+        });
+        
+        List<ArmorStand> displays = new ArrayList<>();
+        displays.add(topDisplay);
+        displays.add(bottomDisplay);
+        displayMap.put(tableLocation, displays);
     }
     
     public void cleanup() {

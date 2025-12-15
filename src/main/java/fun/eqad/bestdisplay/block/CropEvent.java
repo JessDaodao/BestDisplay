@@ -5,99 +5,125 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.Ageable;
 import org.bukkit.entity.*;
-import org.bukkit.event.*;
-import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import java.util.*;
 
-public class CropEvent implements Listener {
+public class CropEvent {
     private final BestDisplay plugin;
     private final Map<Location, List<ArmorStand>> displayMap = new HashMap<>();
+    private BukkitRunnable updateTask;
     
     public CropEvent(BestDisplay plugin) {
         this.plugin = plugin;
+        startUpdateTask();
     }
     
-    @EventHandler
-    public void onPlayerMove(PlayerMoveEvent event) {
+    private void startUpdateTask() {
+        updateTask = new BukkitRunnable() {
+            @Override
+            public void run() {
+                updateAllDisplays();
+            }
+        };
+        updateTask.runTaskTimer(plugin, 0L, 2L);
+    }
+    
+    private void updateAllDisplays() {
         if (!plugin.getConfigManager().shouldCropDisplay()) return;
 
-        Player player = event.getPlayer();
+        Collection<? extends Player> players = Bukkit.getOnlinePlayers();
 
-        Location playerLoc = player.getLocation();
-        List<Block> nearbyCrops = findAllNearbyCrops(playerLoc, 4);
-        
-        if (nearbyCrops.isEmpty()) return;
-        
-        for (Block crop : nearbyCrops) {
-            Location cropLocation = crop.getLocation();
-            Material material = crop.getType();
+        List<Player> playerList = new ArrayList<>(players);
 
-            if (isCrop(material)) {
+        Map<Location, List<ArmorStand>> displayMapCopy = new HashMap<>(displayMap);
+        for (Map.Entry<Location, List<ArmorStand>> entry : displayMapCopy.entrySet()) {
+            Location cropLocation = entry.getKey();
+            boolean hasNearbyPlayer = false;
+
+            for (Player player : playerList) {
+                if (player.getWorld().equals(cropLocation.getWorld()) && 
+                    player.getLocation().distance(cropLocation) <= plugin.getConfigManager().getPlayerRadius()) {
+                    hasNearbyPlayer = true;
+                    break;
+                }
+            }
+
+            if (!hasNearbyPlayer) {
+                for (ArmorStand display : entry.getValue()) {
+                    display.remove();
+                }
+                displayMap.remove(cropLocation);
+            }
+        }
+
+        for (Player player : playerList) {
+            Location playerLoc = player.getLocation();
+            List<Block> nearbyCrops = findAllNearbyCrops(playerLoc, plugin.getConfigManager().getPlayerRadius());
+            
+            for (Block crop : nearbyCrops) {
+                Location cropLocation = crop.getLocation();
+
                 if (displayMap.containsKey(cropLocation)) {
                     continue;
                 }
                 
-                Ageable ageable = (Ageable) crop.getBlockData();
-                int age = ageable.getAge();
-                int maxAge = ageable.getMaximumAge();
-
-                int percentage = (int) ((double) age / maxAge * 100);
-
-                String cropName = getCropName(material);
-
-                String topText = cropName;
-                String bottomText;
-
-                if (percentage >= 100) {
-                    bottomText = "§a已成熟";
-                } else {
-                    bottomText = "§7" + percentage + "%";
+                Material material = crop.getType();
+                if (isCrop(material)) {
+                    displayCropInfo(crop, material);
                 }
-
-                Location topDisplayLocation = cropLocation.clone().add(0.5, 1.8, 0.5);
-                Location bottomDisplayLocation = cropLocation.clone().add(0.5, 1.5, 0.5);
-                
-                ArmorStand topDisplay = crop.getWorld().spawn(topDisplayLocation, ArmorStand.class, armorStand -> {
-                    armorStand.setVisible(false);
-                    armorStand.setGravity(false);
-                    armorStand.setInvulnerable(true);
-                    armorStand.setCustomNameVisible(true);
-                    armorStand.setMarker(true);
-                    armorStand.setSmall(true);
-                    armorStand.setCustomName(topText);
-                    armorStand.addScoreboardTag("BestDisplay");
-                });
-                
-                ArmorStand bottomDisplay = crop.getWorld().spawn(bottomDisplayLocation, ArmorStand.class, armorStand -> {
-                    armorStand.setVisible(false);
-                    armorStand.setGravity(false);
-                    armorStand.setInvulnerable(true);
-                    armorStand.setCustomNameVisible(true);
-                    armorStand.setMarker(true);
-                    armorStand.setSmall(true);
-                    armorStand.setCustomName(bottomText);
-                    armorStand.addScoreboardTag("BestDisplay");
-                });
-                
-                List<ArmorStand> displays = new ArrayList<>();
-                displays.add(topDisplay);
-                displays.add(bottomDisplay);
-                displayMap.put(cropLocation, displays);
-
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        if (displayMap.containsKey(cropLocation)) {
-                            for (ArmorStand display : displayMap.get(cropLocation)) {
-                                display.remove();
-                            }
-                            displayMap.remove(cropLocation);
-                        }
-                    }
-                }.runTaskLater(plugin, 20L * 3);
             }
         }
+    }
+    
+    private void displayCropInfo(Block crop, Material material) {
+        Location cropLocation = crop.getLocation();
+        
+        Ageable ageable = (Ageable) crop.getBlockData();
+        int age = ageable.getAge();
+        int maxAge = ageable.getMaximumAge();
+
+        int percentage = (int) ((double) age / maxAge * 100);
+
+        String cropName = getCropName(material);
+
+        String topText = cropName;
+        String bottomText;
+
+        if (percentage >= 100) {
+            bottomText = "§a已成熟";
+        } else {
+            bottomText = "§7" + percentage + "%";
+        }
+
+        Location topDisplayLocation = cropLocation.clone().add(0.5, 1.8, 0.5);
+        Location bottomDisplayLocation = cropLocation.clone().add(0.5, 1.5, 0.5);
+        
+        ArmorStand topDisplay = crop.getWorld().spawn(topDisplayLocation, ArmorStand.class, armorStand -> {
+            armorStand.setVisible(false);
+            armorStand.setGravity(false);
+            armorStand.setInvulnerable(true);
+            armorStand.setCustomNameVisible(true);
+            armorStand.setMarker(true);
+            armorStand.setSmall(true);
+            armorStand.setCustomName(topText);
+            armorStand.addScoreboardTag("BestDisplay");
+        });
+        
+        ArmorStand bottomDisplay = crop.getWorld().spawn(bottomDisplayLocation, ArmorStand.class, armorStand -> {
+            armorStand.setVisible(false);
+            armorStand.setGravity(false);
+            armorStand.setInvulnerable(true);
+            armorStand.setCustomNameVisible(true);
+            armorStand.setMarker(true);
+            armorStand.setSmall(true);
+            armorStand.setCustomName(bottomText);
+            armorStand.addScoreboardTag("BestDisplay");
+        });
+        
+        List<ArmorStand> displays = new ArrayList<>();
+        displays.add(topDisplay);
+        displays.add(bottomDisplay);
+        displayMap.put(cropLocation, displays);
     }
     
     private List<Block> findAllNearbyCrops(Location center, int radius) {
