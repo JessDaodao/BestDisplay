@@ -1,21 +1,21 @@
 <div align="center">
 
-## BestDisplay - 现代化事件显示
+# BestDisplay - 现代化事件显示
 
 </div>
 
-## 简介
+### 简介
 
 该插件提供了现代化的事件显示
 
 注：史山，请捏住鼻子查看源代码
 
-## 其他
-
 ### 命令
+
 - `/bd reload` 重载配置文件
 
 ### 权限节点
+
 - `bestdisplay.admin` 管理员命令
 
 ### 配置文件
