@@ -90,7 +90,6 @@ public class FurnaceEvent {
     
     private void displayFurnaceInfo(Block furnace, Material material) {
         Location furnaceLocation = furnace.getLocation();
-        String furnaceName = getFurnaceName(material);
         boolean hasBlockAbove = hasBlockAbove(furnaceLocation);
         boolean hasBlockBelow = hasBlockBelow(furnaceLocation);
 
@@ -100,6 +99,8 @@ public class FurnaceEvent {
 
         String smeltingItem = "无";
         int unsmeltedCount = 0;
+        String fuelItem = "无";
+        int fuelCount = 0;
         
         if (furnace.getState() instanceof org.bukkit.block.Furnace) {
             org.bukkit.block.Furnace furnaceState = (org.bukkit.block.Furnace) furnace.getState();
@@ -110,21 +111,24 @@ public class FurnaceEvent {
                 smeltingItem = getItemName(smelting);
                 unsmeltedCount = smelting.getAmount();
             }
+
+            ItemStack fuel = inventory.getFuel();
+            if (fuel != null && fuel.getType() != Material.AIR) {
+                fuelItem = getItemName(fuel);
+                fuelCount = fuel.getAmount();
+            }
         }
         
-        String topText = furnaceName;
-        String middleText = "§7物品: §f" + smeltingItem;
-        String bottomText = "§7数量: §f" + unsmeltedCount;
+        String topText = "§7物品：§f" + smeltingItem + " §7x" + unsmeltedCount;
+        String bottomText = "§7燃料：§f" + fuelItem + " §7x" + fuelCount;
 
-        Location topDisplayLocation, middleDisplayLocation, bottomDisplayLocation;
+        Location topDisplayLocation, bottomDisplayLocation;
         
         if (hasBlockAbove) {
             topDisplayLocation = furnaceLocation.clone().add(0.5, -0.6, 0.5);
-            middleDisplayLocation = furnaceLocation.clone().add(0.5, -0.9, 0.5);
-            bottomDisplayLocation = furnaceLocation.clone().add(0.5, -1.2, 0.5);
+            bottomDisplayLocation = furnaceLocation.clone().add(0.5, -0.9, 0.5);
         } else {
-            topDisplayLocation = furnaceLocation.clone().add(0.5, 1.6, 0.5);
-            middleDisplayLocation = furnaceLocation.clone().add(0.5, 1.3, 0.5);
+            topDisplayLocation = furnaceLocation.clone().add(0.5, 1.3, 0.5);
             bottomDisplayLocation = furnaceLocation.clone().add(0.5, 1.0, 0.5);
         }
         
@@ -136,17 +140,6 @@ public class FurnaceEvent {
             armorStand.setMarker(true);
             armorStand.setSmall(true);
             armorStand.setCustomName(topText);
-            armorStand.addScoreboardTag("BestDisplay");
-        });
-        
-        ArmorStand middleDisplay = furnace.getWorld().spawn(middleDisplayLocation, ArmorStand.class, armorStand -> {
-            armorStand.setVisible(false);
-            armorStand.setGravity(false);
-            armorStand.setInvulnerable(true);
-            armorStand.setCustomNameVisible(true);
-            armorStand.setMarker(true);
-            armorStand.setSmall(true);
-            armorStand.setCustomName(middleText);
             armorStand.addScoreboardTag("BestDisplay");
         });
         
@@ -163,15 +156,15 @@ public class FurnaceEvent {
         
         List<ArmorStand> displays = new ArrayList<>();
         displays.add(topDisplay);
-        displays.add(middleDisplay);
         displays.add(bottomDisplay);
         displayMap.put(furnaceLocation, displays);
     }
     
     private void updateFurnaceDisplay(Block furnace, Material material, List<ArmorStand> displays) {
-        String furnaceName = getFurnaceName(material);
         String smeltingItem = "无";
         int unsmeltedCount = 0;
+        String fuelItem = "无";
+        int fuelCount = 0;
         
         if (furnace.getState() instanceof org.bukkit.block.Furnace) {
             org.bukkit.block.Furnace furnaceState = (org.bukkit.block.Furnace) furnace.getState();
@@ -182,16 +175,20 @@ public class FurnaceEvent {
                 smeltingItem = getItemName(smelting);
                 unsmeltedCount = smelting.getAmount();
             }
+
+            ItemStack fuel = inventory.getFuel();
+            if (fuel != null && fuel.getType() != Material.AIR) {
+                fuelItem = getItemName(fuel);
+                fuelCount = fuel.getAmount();
+            }
         }
         
-        String topText = furnaceName;
-        String middleText = "§7物品: §f" + smeltingItem;
-        String bottomText = "§7数量: §f" + unsmeltedCount;
+        String topText = "§7物品：§f" + smeltingItem + " §7x" + unsmeltedCount;
+        String bottomText = "§7燃料：§f" + fuelItem + " §7x" + fuelCount;
 
-        if (displays.size() >= 3) {
+        if (displays.size() >= 2) {
             displays.get(0).setCustomName(topText);
-            displays.get(1).setCustomName(middleText);
-            displays.get(2).setCustomName(bottomText);
+            displays.get(1).setCustomName(bottomText);
         }
     }
     

@@ -73,7 +73,15 @@ public class DropEvent {
                 ItemStack currentItemStack = item.getItemStack();
                 String currentItemName = plugin.getNameUtil().getItemName(currentItemStack);
                 int currentAmount = currentItemStack.getAmount();
-                String currentDisplayName = currentAmount > 1 ? currentItemName + " §7x" + currentAmount : currentItemName;
+                
+                int remainingTicks = 6000 - item.getTicksLived();
+                if (remainingTicks < 0) remainingTicks = 0;
+                int totalSeconds = remainingTicks / 20;
+                int minutes = totalSeconds / 60;
+                int seconds = totalSeconds % 60;
+                String timeStr = String.format("%02d:%02d", minutes, seconds);
+
+                String currentDisplayName = (currentAmount > 1 ? currentItemName + " §7x" + currentAmount : currentItemName) + " §8[" + timeStr + "]";
                 display.setCustomName(currentDisplayName);
                 display.setCustomNameVisible(true);
             }
@@ -105,7 +113,14 @@ public class DropEvent {
         String itemName = plugin.getNameUtil().getItemName(itemStack);
         int amount = itemStack.getAmount();
 
-        String displayName = amount > 1 ? itemName + " §7x" + amount : itemName;
+        int remainingTicks = 6000 - item.getTicksLived();
+        if (remainingTicks < 0) remainingTicks = 0;
+        int totalSeconds = remainingTicks / 20;
+        int minutes = totalSeconds / 60;
+        int seconds = totalSeconds % 60;
+        String timeStr = String.format("%02d:%02d", minutes, seconds);
+
+        String displayName = (amount > 1 ? itemName + " §7x" + amount : itemName) + " §8[" + timeStr + "]";
 
         Location itemLocation = item.getLocation();
         Location displayLocation = itemLocation.clone().add(0, 0.5, 0);
