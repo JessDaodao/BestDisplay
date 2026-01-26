@@ -20,6 +20,7 @@ public class ConfigManager {
     private boolean beeNestDisplay;
     private boolean furnaceDisplay;
     private boolean enchantingTableDisplay;
+    private boolean endCrystalDisplay;
     private boolean arrowSound;
 
     public ConfigManager(BestDisplay plugin) {
@@ -47,6 +48,7 @@ public class ConfigManager {
         beeNestDisplay = config.getBoolean("settings.display.bee_nest", true);
         furnaceDisplay = config.getBoolean("settings.display.furnace", true);
         enchantingTableDisplay = config.getBoolean("settings.display.enchanting_table", true);
+        endCrystalDisplay = config.getBoolean("settings.display.end_crystal", true);
         arrowSound = config.getBoolean("settings.sound.arrow", true);
     }
 
@@ -62,5 +64,6 @@ public class ConfigManager {
     public boolean shouldBeeNestDisplay() { return beeNestDisplay; }
     public boolean shouldFurnaceDisplay() { return furnaceDisplay; }
     public boolean shouldEnchantingTableDisplay() { return enchantingTableDisplay; }
+    public boolean shouldEndCrystalDisplay() { return endCrystalDisplay; }
     public boolean shouldArrowSound() { return arrowSound; }
 }

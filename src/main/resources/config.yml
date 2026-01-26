@@ -8,7 +8,7 @@ settings:
   player:
     # 以玩家为半径的横幅显示范围（方块）
     # 调太大可能会遇到性能问题
-    radius: 6
+    radius: 10
   display:
     # 是否在实体头顶显示扣血横幅
     damage_above: true
@@ -30,6 +30,8 @@ settings:
     furnace: true
     # 是否在附魔台上方显示最大附魔等级
     enchanting_table: true
+    # 是否在打龙时显示剩余末影水晶数量
+    end_crystal: true
   sound:
     # 是否在玩家射中实体时播放音效
     arrow: true

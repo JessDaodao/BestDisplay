@@ -21,6 +21,7 @@ public final class BestDisplay extends JavaPlugin implements Listener {
     private EnchantingTableEvent enchantingTableEvent;
     private VillagerEvent villagerEvent;
     private TNTEvent tntEvent;
+    private EndCrystalEvent endCrystalEvent;
 
     public ConfigManager getConfigManager() { return config; }
     public NameUtil getNameUtil() { return nameUtil; }
@@ -32,6 +33,7 @@ public final class BestDisplay extends JavaPlugin implements Listener {
     public EnchantingTableEvent getEnchantingTableEvent() { return enchantingTableEvent; }
     public VillagerEvent getVillagerEvent() { return villagerEvent; }
     public TNTEvent getTNTEvent() { return tntEvent; }
+    public EndCrystalEvent getEndCrystalEvent() { return endCrystalEvent; }
 
     @Override
     public void onEnable() {
@@ -54,9 +56,11 @@ public final class BestDisplay extends JavaPlugin implements Listener {
         this.enchantingTableEvent = new EnchantingTableEvent(this);
         this.villagerEvent = new VillagerEvent(this);
         this.tntEvent = new TNTEvent(this);
+        this.endCrystalEvent = new EndCrystalEvent(this);
         
         new bStats(this, 28325);
         getServer().getPluginManager().registerEvents(hitEvent, this);
+        getServer().getPluginManager().registerEvents(endCrystalEvent, this);
         getCommand("bestdisplay").setExecutor(new CommandManager(this));
         getCommand("bestdisplay").setTabCompleter(new CommandManager(this));
 

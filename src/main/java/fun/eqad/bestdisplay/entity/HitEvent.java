@@ -52,7 +52,7 @@ public class HitEvent implements Listener {
 
                 String damageColor = isCritical ? "§4" : "§c";
                 displayMessage = targetName + "§7 " + healthBar +
-                        " §7(§f" + String.format("%.1f", remainingHealth) + "§7/§f" + String.format("%.1f", maxHealth) + ")" +
+                        " §7(§f" + String.format("%.1f", remainingHealth) + "§7/§f" + String.format("%.1f", maxHealth) + "§7)" +
                         " §7- " + damageColor + String.format("%.1f", damage) + " ❤";
 
                 showDamageAboveHead(victim, damage, isCritical);
@@ -78,7 +78,7 @@ public class HitEvent implements Listener {
 
                     String damageColor = isCritical ? "§4" : "§c";
                     displayMessage = targetName + "§7 " + healthBar +
-                            " §7(§f" + String.format("%.1f", remainingHealth) + "§7/§f" + String.format("%.1f", maxHealth) + ")" +
+                            " §7(§f" + String.format("%.1f", remainingHealth) + "§7/§f" + String.format("%.1f", maxHealth) + "§7)" +
                             " §7- " + damageColor + String.format("%.1f", damage) + " ❤";
 
                     showDamageAboveHead(livingEntity, damage, isCritical);
@@ -130,7 +130,7 @@ public class HitEvent implements Listener {
 
                     String damageColor = "§c";
                     displayMessage = targetName + "§7 " + healthBar +
-                            " §7(§f" + String.format("%.1f", remainingHealth) + "§7/§f" + String.format("%.1f", maxHealth) + ")" +
+                            " §7(§f" + String.format("%.1f", remainingHealth) + "§7/§f" + String.format("%.1f", maxHealth) + "§7)" +
                             " §7- " + damageColor + String.format("%.1f", damage) + " ❤";
                 } else {
                     try {
@@ -154,7 +154,7 @@ public class HitEvent implements Listener {
 
                         String damageColor = "§c";
                         displayMessage = targetName + "§7 " + healthBar +
-                                " §7(§f" + String.format("%.1f", remainingHealth) + "§7/§f" + String.format("%.1f", maxHealth) + ")" +
+                                " §7(§f" + String.format("%.1f", remainingHealth) + "§7/§f" + String.format("%.1f", maxHealth) + "§7)" +
                                 " §7- " + damageColor + String.format("%.1f", damage) + " ❤";
                     } catch (ClassCastException e) {
                         return;
