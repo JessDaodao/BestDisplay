@@ -32,6 +32,8 @@ settings:
     enchanting_table: true
     # 是否在打龙时显示剩余末影水晶数量
     end_crystal: true
+    # 是否在玩家头顶显示聊天信息
+    chat: true
   sound:
     # 是否在玩家射中实体时播放音效
     arrow: true
