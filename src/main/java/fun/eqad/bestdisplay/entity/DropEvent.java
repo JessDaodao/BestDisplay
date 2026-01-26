@@ -9,7 +9,7 @@ import java.util.*;
 
 public class DropEvent {
     private final BestDisplay plugin;
-    private final Map<UUID, ArmorStand> displayMap = new HashMap<>();
+    private final Set<UUID> lastVisibleItems = new HashSet<>();
     private BukkitRunnable updateTask;
 
     public DropEvent(BestDisplay plugin) {
@@ -24,91 +24,46 @@ public class DropEvent {
                 updateAllDisplays();
             }
         };
-        updateTask.runTaskTimer(plugin, 0L, 1L);
+        updateTask.runTaskTimer(plugin, 0L, 5L);
     }
 
     private void updateAllDisplays() {
         if (!plugin.getConfigManager().shouldDropDisplay()) return;
 
+        Set<UUID> currentVisibleItems = new HashSet<>();
         Collection<? extends Player> players = Bukkit.getOnlinePlayers();
+        double radius = plugin.getConfigManager().getPlayerRadius();
 
-        List<Player> playerList = new ArrayList<>(players);
-
-        Map<UUID, ArmorStand> displayMapCopy = new HashMap<>(displayMap);
-        for (Map.Entry<UUID, ArmorStand> entry : displayMapCopy.entrySet()) {
-            UUID itemId = entry.getKey();
-            boolean hasNearbyPlayer = false;
-
-            Item item = null;
-            Entity entity = Bukkit.getEntity(itemId);
-            if (entity instanceof Item) {
-                item = (Item) entity;
-            }
-
-            if (item == null || item.isDead() || !item.isValid()) {
-                entry.getValue().remove();
-                displayMap.remove(itemId);
-                continue;
-            }
-
-            for (Player player : playerList) {
-                if (player.getWorld().equals(item.getWorld()) &&
-                        player.getLocation().distance(item.getLocation()) <= plugin.getConfigManager().getPlayerRadius()) {
-                    hasNearbyPlayer = true;
-                    break;
-                }
-            }
-
-            if (!hasNearbyPlayer) {
-                entry.getValue().remove();
-                displayMap.remove(itemId);
-                continue;
-            }
-
-            ArmorStand display = entry.getValue();
-            if (display.isValid()) {
-                Location currentLocation = item.getLocation();
-                display.teleport(currentLocation.clone().add(0, 0.5, 0));
-
-                ItemStack currentItemStack = item.getItemStack();
-                String currentItemName = plugin.getNameUtil().getItemName(currentItemStack);
-                int currentAmount = currentItemStack.getAmount();
-                
-                int remainingTicks = 6000 - item.getTicksLived();
-                if (remainingTicks < 0) remainingTicks = 0;
-                int totalSeconds = remainingTicks / 20;
-                int minutes = totalSeconds / 60;
-                int seconds = totalSeconds % 60;
-                String timeStr = String.format("%02d:%02d", minutes, seconds);
-
-                String currentDisplayName = (currentAmount > 1 ? currentItemName + " §7x" + currentAmount : currentItemName) + " §8[" + timeStr + "]";
-                display.setCustomName(currentDisplayName);
-                display.setCustomNameVisible(true);
-            }
-        }
-
-        for (Player player : playerList) {
+        for (Player player : players) {
             Location playerLoc = player.getLocation();
 
-            for (Entity entity : playerLoc.getWorld().getNearbyEntities(playerLoc,
-                    plugin.getConfigManager().getPlayerRadius(),
-                    plugin.getConfigManager().getPlayerRadius(),
-                    plugin.getConfigManager().getPlayerRadius()
-            )) {
+            for (Entity entity : playerLoc.getWorld().getNearbyEntities(playerLoc, radius, radius, radius)) {
                 if (!(entity instanceof Item)) continue;
 
                 Item item = (Item) entity;
-                UUID itemId = item.getUniqueId();
+                if (currentVisibleItems.contains(item.getUniqueId())) continue;
 
-                if (displayMap.containsKey(itemId)) continue;
+                if (!item.isValid() || item.isDead()) continue;
 
-                displayItemInfo(item);
+                currentVisibleItems.add(item.getUniqueId());
+                updateItemDisplay(item);
             }
         }
+
+        for (UUID uuid : lastVisibleItems) {
+            if (!currentVisibleItems.contains(uuid)) {
+                Entity entity = Bukkit.getEntity(uuid);
+                if (entity instanceof Item && entity.isValid()) {
+                    entity.setCustomNameVisible(false);
+                }
+            }
+        }
+
+        lastVisibleItems.clear();
+        lastVisibleItems.addAll(currentVisibleItems);
     }
 
-    private void displayItemInfo(Item item) {
-        UUID itemId = item.getUniqueId();
+    private void updateItemDisplay(Item item) {
         ItemStack itemStack = item.getItemStack();
         String itemName = plugin.getNameUtil().getItemName(itemStack);
         int amount = itemStack.getAmount();
@@ -120,35 +75,9 @@ public class DropEvent {
         int seconds = totalSeconds % 60;
         String timeStr = String.format("%02d:%02d", minutes, seconds);
 
-        String displayName = (amount > 1 ? itemName + " §7x" + amount : itemName) + " §8[" + timeStr + "]";
-
-        Location itemLocation = item.getLocation();
-        Location displayLocation = itemLocation.clone().add(0, 0.5, 0);
-
-        ArmorStand display = item.getWorld().spawn(displayLocation, ArmorStand.class, armorStand -> {
-            armorStand.setVisible(false);
-            armorStand.setGravity(false);
-            armorStand.setInvulnerable(true);
-            armorStand.setCustomNameVisible(false);
-            armorStand.setMarker(true);
-            armorStand.setSmall(true);
-
-            armorStand.setCustomName(displayName);
-            armorStand.addScoreboardTag("BestDisplay");
-        });
-
-        displayMap.put(itemId, display);
-
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (displayMap.containsKey(itemId)) {
-                    ArmorStand armorStand = displayMap.get(itemId);
-                    if (armorStand.isValid()) {
-                        armorStand.setCustomNameVisible(true);
-                    }
-                }
-            }
-        }.runTaskLater(plugin, 10L);
+        String displayName = (amount > 1 ? itemName + " §7x" + amount : itemName) + " §8[§7" + timeStr + "§8]";
+        
+        item.setCustomName(displayName);
+        item.setCustomNameVisible(true);
     }
 }

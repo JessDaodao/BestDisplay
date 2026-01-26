@@ -24,7 +24,7 @@ public class EnchantingTableEvent {
                 updateAllDisplays();
             }
         };
-        updateTask.runTaskTimer(plugin, 0L, 2L);
+        updateTask.runTaskTimer(plugin, 15L, 5L);
     }
     
     private void updateAllDisplays() {

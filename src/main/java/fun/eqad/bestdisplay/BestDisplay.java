@@ -57,7 +57,6 @@ public final class BestDisplay extends JavaPlugin implements Listener {
         
         new bStats(this, 28325);
         getServer().getPluginManager().registerEvents(hitEvent, this);
-        getServer().getPluginManager().registerEvents(tntEvent, this);
         getCommand("bestdisplay").setExecutor(new CommandManager(this));
         getCommand("bestdisplay").setTabCompleter(new CommandManager(this));
 

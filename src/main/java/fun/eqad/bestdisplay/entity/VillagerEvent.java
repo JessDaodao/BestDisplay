@@ -8,7 +8,7 @@ import java.util.*;
 
 public class VillagerEvent {
     private final BestDisplay plugin;
-    private final Map<UUID, List<ArmorStand>> displayMap = new HashMap<>();
+    private final Set<UUID> lastVisibleVillagers = new HashSet<>();
     private BukkitRunnable updateTask;
     
     public VillagerEvent(BestDisplay plugin) {
@@ -23,145 +23,57 @@ public class VillagerEvent {
                 updateAllDisplays();
             }
         };
-        updateTask.runTaskTimer(plugin, 0L, 1L);
+        updateTask.runTaskTimer(plugin, 0L, 5L);
     }
     
     private void updateAllDisplays() {
         if (!plugin.getConfigManager().shouldVillagerDisplay()) return;
 
+        Set<UUID> currentVisibleVillagers = new HashSet<>();
         Collection<? extends Player> players = Bukkit.getOnlinePlayers();
+        double radius = plugin.getConfigManager().getPlayerRadius();
 
-        List<Player> playerList = new ArrayList<>(players);
-
-        Map<UUID, List<ArmorStand>> displayMapCopy = new HashMap<>(displayMap);
-        for (Map.Entry<UUID, List<ArmorStand>> entry : displayMapCopy.entrySet()) {
-            UUID villagerId = entry.getKey();
-            boolean hasNearbyPlayer = false;
-
-            Villager villager = null;
-            Entity entity = Bukkit.getEntity(villagerId);
-            if (entity instanceof Villager) {
-                villager = (Villager) entity;
-            }
-
-            if (villager == null || villager.isDead() || !villager.isValid()) {
-                for (ArmorStand display : entry.getValue()) {
-                    display.remove();
-                }
-                displayMap.remove(villagerId);
-                continue;
-            }
-
-            for (Player player : playerList) {
-                if (player.getWorld().equals(villager.getWorld()) && 
-                    player.getLocation().distance(villager.getLocation()) <= plugin.getConfigManager().getPlayerRadius()) {
-                    hasNearbyPlayer = true;
-                    break;
-                }
-            }
-
-            if (!hasNearbyPlayer) {
-                for (ArmorStand display : entry.getValue()) {
-                    display.remove();
-                }
-                displayMap.remove(villagerId);
-                continue;
-            }
-
-            if (villager.getProfession() == Villager.Profession.NONE || villager.getProfession() == Villager.Profession.NITWIT) {
-                for (ArmorStand display : entry.getValue()) {
-                    display.remove();
-                }
-                displayMap.remove(villagerId);
-                continue;
-            }
-
-            String professionName = getVillagerProfessionName(villager.getProfession());
-            String villagerLevel = getVillagerLevel(villager.getVillagerLevel());
-
-            String topText = professionName;
-            String bottomText = "§7" + villagerLevel;
-            
-            List<ArmorStand> displays = entry.getValue();
-            if (displays.size() >= 2 && displays.get(0).isValid() && displays.get(1).isValid()) {
-                Location currentLocation = villager.getLocation();
-                displays.get(0).teleport(currentLocation.clone().add(0, 2.4, 0));
-                displays.get(1).teleport(currentLocation.clone().add(0, 2.1, 0));
-                
-                displays.get(0).setCustomName(topText);
-                displays.get(1).setCustomName(bottomText);
-            }
-        }
-
-        for (Player player : playerList) {
+        for (Player player : players) {
             Location playerLoc = player.getLocation();
             
-            for (Entity entity : playerLoc.getWorld().getNearbyEntities(playerLoc,
-                    plugin.getConfigManager().getPlayerRadius(),
-                    plugin.getConfigManager().getPlayerRadius(),
-                    plugin.getConfigManager().getPlayerRadius()
-            )) {
+            for (Entity entity : playerLoc.getWorld().getNearbyEntities(playerLoc, radius, radius, radius)) {
                 if (!(entity instanceof Villager)) continue;
                 
                 Villager villager = (Villager) entity;
-                UUID villagerId = villager.getUniqueId();
+                if (currentVisibleVillagers.contains(villager.getUniqueId())) continue;
 
-                if (displayMap.containsKey(villagerId)) continue;
+                if (!villager.isValid() || villager.isDead()) continue;
                 
-                displayVillagerInfo(villager);
+                if (villager.getProfession() == Villager.Profession.NONE || villager.getProfession() == Villager.Profession.NITWIT) {
+                    continue;
+                }
+
+                currentVisibleVillagers.add(villager.getUniqueId());
+                updateVillagerDisplay(villager);
             }
         }
+
+        for (UUID uuid : lastVisibleVillagers) {
+            if (!currentVisibleVillagers.contains(uuid)) {
+                Entity entity = Bukkit.getEntity(uuid);
+                if (entity instanceof Villager && entity.isValid()) {
+                    entity.setCustomNameVisible(false);
+                }
+            }
+        }
+
+        lastVisibleVillagers.clear();
+        lastVisibleVillagers.addAll(currentVisibleVillagers);
     }
     
-    private void displayVillagerInfo(Villager villager) {
-        UUID villagerId = villager.getUniqueId();
-        
-        if (villager.getProfession() == Villager.Profession.NONE || villager.getProfession() == Villager.Profession.NITWIT) {
-            return;
-        }
-        
-        if (displayMap.containsKey(villagerId)) {
-            for (ArmorStand armorStand : displayMap.get(villagerId)) {
-                armorStand.remove();
-            }
-        }
-        
+    private void updateVillagerDisplay(Villager villager) {
         String professionName = getVillagerProfessionName(villager.getProfession());
         String villagerLevel = getVillagerLevel(villager.getVillagerLevel());
 
-        String topText = professionName;
-        String bottomText = "§7" + villagerLevel;
+        String displayName = professionName + " §8| §7" + villagerLevel;
         
-        Location villagerLocation = villager.getLocation();
-        Location topDisplayLocation = villagerLocation.clone().add(0, 2.4, 0);
-        Location bottomDisplayLocation = villagerLocation.clone().add(0, 2.1, 0);
-        
-        ArmorStand topDisplay = villager.getWorld().spawn(topDisplayLocation, ArmorStand.class, armorStand -> {
-            armorStand.setVisible(false);
-            armorStand.setGravity(false);
-            armorStand.setInvulnerable(true);
-            armorStand.setCustomNameVisible(true);
-            armorStand.setMarker(true);
-            armorStand.setSmall(true);
-            armorStand.setCustomName(topText);
-            armorStand.addScoreboardTag("BestDisplay");
-        });
-        
-        ArmorStand bottomDisplay = villager.getWorld().spawn(bottomDisplayLocation, ArmorStand.class, armorStand -> {
-            armorStand.setVisible(false);
-            armorStand.setGravity(false);
-            armorStand.setInvulnerable(true);
-            armorStand.setCustomNameVisible(true);
-            armorStand.setMarker(true);
-            armorStand.setSmall(true);
-            armorStand.setCustomName(bottomText);
-            armorStand.addScoreboardTag("BestDisplay");
-        });
-        
-        List<ArmorStand> displays = new ArrayList<>();
-        displays.add(topDisplay);
-        displays.add(bottomDisplay);
-        displayMap.put(villagerId, displays);
+        villager.setCustomName(displayName);
+        villager.setCustomNameVisible(true);
     }
     
     private String getVillagerProfessionName(Villager.Profession profession) {
@@ -199,15 +111,8 @@ public class VillagerEvent {
     }
     
     public void cleanup() {
-        for (List<ArmorStand> armorStands : displayMap.values()) {
-            if (armorStands != null) {
-                for (ArmorStand armorStand : armorStands) {
-                    if (armorStand != null) {
-                        armorStand.remove();
-                    }
-                }
-            }
+        if (updateTask != null) {
+            updateTask.cancel();
         }
-        displayMap.clear();
     }
 }

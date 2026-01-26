@@ -26,7 +26,7 @@ public class FurnaceEvent {
                 updateAllDisplays();
             }
         };
-        updateTask.runTaskTimer(plugin, 0L, 2L);
+        updateTask.runTaskTimer(plugin, 20L, 5L);
     }
     
     private void updateAllDisplays() {

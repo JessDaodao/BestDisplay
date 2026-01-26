@@ -25,7 +25,7 @@ public class CropEvent {
                 updateAllDisplays();
             }
         };
-        updateTask.runTaskTimer(plugin, 0L, 2L);
+        updateTask.runTaskTimer(plugin, 10L, 5L);
     }
     
     private void updateAllDisplays() {
