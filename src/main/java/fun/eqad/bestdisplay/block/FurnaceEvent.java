@@ -119,8 +119,8 @@ public class FurnaceEvent {
             }
         }
         
-        String topText = "§7物品：§f" + smeltingItem + " §7x" + unsmeltedCount;
-        String bottomText = "§7燃料：§f" + fuelItem + " §7x" + fuelCount;
+        String topText = "§7物品: §f" + smeltingItem + (unsmeltedCount > 1 ? " §7x" + unsmeltedCount : "");
+        String bottomText = "§7燃料: §f" + fuelItem + (fuelCount > 1 ? " §7x" + fuelCount : "");
 
         Location topDisplayLocation, bottomDisplayLocation;
         
@@ -183,8 +183,8 @@ public class FurnaceEvent {
             }
         }
         
-        String topText = "§7物品：§f" + smeltingItem + " §7x" + unsmeltedCount;
-        String bottomText = "§7燃料：§f" + fuelItem + " §7x" + fuelCount;
+        String topText = "§7物品: §f" + smeltingItem + (unsmeltedCount > 1 ? " §7x" + unsmeltedCount : "");
+        String bottomText = "§7燃料: §f" + fuelItem + (fuelCount > 1 ? " §7x" + fuelCount : "");
 
         if (displays.size() >= 2) {
             displays.get(0).setCustomName(topText);
