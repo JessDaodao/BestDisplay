@@ -33,7 +33,7 @@ public class ChatEvent implements Listener {
 
     private void showChatAboveHead(Player player, String message) {
         Location playerLocation = player.getLocation();
-        Location displayLocation = playerLocation.clone().add(0, 2.2, 0);
+        Location displayLocation = playerLocation.clone().add(0, 2.6, 0);
 
         ArmorStand chatDisplay = player.getWorld().spawn(displayLocation, ArmorStand.class, armorStand -> {
             armorStand.setVisible(false);
