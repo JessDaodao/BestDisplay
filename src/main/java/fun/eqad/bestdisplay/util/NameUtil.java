@@ -1,4 +1,4 @@
-package fun.eqad.bestdisplay.Util;
+package fun.eqad.bestdisplay.util;
 
 import fun.eqad.bestdisplay.BestDisplay;
 import org.bukkit.Material;

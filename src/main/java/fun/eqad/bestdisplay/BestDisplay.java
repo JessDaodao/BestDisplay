@@ -1,6 +1,6 @@
 package fun.eqad.bestdisplay;
 
-import fun.eqad.bestdisplay.Util.NameUtil;
+import fun.eqad.bestdisplay.util.NameUtil;
 import fun.eqad.bestdisplay.bstats.bStats;
 import fun.eqad.bestdisplay.config.ConfigManager;
 import fun.eqad.bestdisplay.command.CommandManager;

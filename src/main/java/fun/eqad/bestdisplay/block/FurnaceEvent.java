@@ -244,7 +244,7 @@ public class FurnaceEvent {
     }
     
     private String getItemName(ItemStack item) {
-        return fun.eqad.bestdisplay.Util.NameUtil.getItemName(item);
+        return fun.eqad.bestdisplay.util.NameUtil.getItemName(item);
     }
     
     private boolean hasBlockAbove(Location location) {
